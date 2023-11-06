@@ -10,6 +10,12 @@ import { AuthRoutingModule } from './auth/auth.routing';
 
 
 const routes: Routes = [
+  // path: '/dashboard' PagesRouting
+  // path: '/auth' AuthRouting
+  // path: '/error' ErrorRouting
+  // path: '/mantenimientos' MaintenanceRouting
+  
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'error-404', pathMatch:'full' },
 ];
 
