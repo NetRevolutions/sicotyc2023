@@ -1,17 +1,20 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+import { NgChartsModule } from 'ng2-charts';
 
 // Modulos
 import { SharedModule } from '../shared/shared.module';
-import { RouterModule } from '@angular/router';
+import { ComponentsModule } from '../components/components.module';
 
 // Componentes
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { Grafica1Component } from './grafica1/grafica1.component';
+import { Grafica1Component } from './dashboard/grafica1/grafica1.component';
 import { PagesComponent } from './pages.component';
-import { ProgressComponent } from './progress/progress.component';
-
-
+import { ProgressComponent } from './dashboard/progress/progress.component';
+import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +22,8 @@ import { ProgressComponent } from './progress/progress.component';
     ProgressComponent,
     Grafica1Component,
     PagesComponent,
+    JuegosAzarComponent,
+    
   ],
   exports: [
     DashboardComponent,
@@ -28,8 +33,11 @@ import { ProgressComponent } from './progress/progress.component';
   ],
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,    
-    SharedModule
+    SharedModule,
+    ComponentsModule,
+    NgChartsModule
   ],
 })
 export class PagesModule { }

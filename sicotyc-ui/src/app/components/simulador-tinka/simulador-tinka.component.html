@@ -1,0 +1,72 @@
+<div class="row">
+    <div class="col-3">
+        <div class="card">
+            <div class="card-body">
+                <h3>{{titulo}}</h3>
+                <div class="row">
+                    <div id="tabla-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-9">
+        <div class="card">
+            <div class="card-body">
+                <form class="form-horizontal" role="form">
+                    <div class="form-body">                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-md-4 control-label">Num. Minimo:</label>
+                                    <div class="col-md-8">
+                                        <p class="form-control-static"> {{numeroMinimo}} </p>
+                                    </div>
+                                </div>                                
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-md-4 control-label">Num. Maximo:</label>
+                                    <div class="col-md-8">
+                                        <p class="form-control-static"> {{numeroMaximo}} </p>
+                                    </div>
+                                </div>                                
+                            </div>                            
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-md-4 control-label">Num. Aciertos:</label>
+                                    <div class="col-md-8">
+                                        <p class="form-control-static"> {{numeroAciertos}} </p>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <label class="col-md-4 control-label">Resultados:</label>
+                                    <div class="col-md-8">
+                                        <p class="form-control-static"> {{resultados.length > 0 ? resultados.join(' , '): ''}} </p>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div> 
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group row">
+                                    <button type="button" class="btn btn-primary col-md-4 ml-3" id="Azar" (click)="AlAzar()">Al Azar</button>
+                                    <button type="button" class="btn btn-danger col-md-4 ml-3" id="Limpiar" (click)="limpiarValores()">Limpiar</button>
+                                </div>
+                            </div>                            
+                        </div>
+                    </div>
+                </form>         
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

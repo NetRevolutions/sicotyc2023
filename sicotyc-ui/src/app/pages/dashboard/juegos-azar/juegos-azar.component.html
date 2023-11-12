@@ -1,0 +1,9 @@
+<h3>Juegos de Azar</h3>
+<app-simulador-tinka
+    [titulo]="'Simulador Tinka'"
+    (valorSalida)="resultadosTinka = $event"
+>    
+</app-simulador-tinka>
+<div class="row">
+    <span>Resultados del componente Tinka: {{resultadosTinka.length > 0 ? resultadosTinka.join(' , '): ''}}</span>
+</div>
