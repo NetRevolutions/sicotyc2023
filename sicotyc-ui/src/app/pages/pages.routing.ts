@@ -10,6 +10,7 @@ import { CreacionServicioComponent } from './operaciones/creacion-servicio/creac
 import { EvaluacionServicioComponent } from './operaciones/evaluacion-servicio/evaluacion-servicio.component';
 import { OperacionesComponent } from './operaciones/operaciones.component';
 import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.component';
+import { AccountSettingsComponent } from './account-settings/account-settings.component';
 
 const routes: Routes = [
     { 
@@ -21,6 +22,7 @@ const routes: Routes = [
             { path: 'progress', component: ProgressComponent },
             { path: 'grafica1', component: Grafica1Component },
             { path: 'juegos-azar', component: JuegosAzarComponent },
+            { path: 'account-settings', component: AccountSettingsComponent },
         ] 
     },
     {

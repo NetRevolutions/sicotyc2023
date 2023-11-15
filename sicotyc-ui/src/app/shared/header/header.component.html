@@ -7,7 +7,7 @@
         <!-- Logo -->
         <!-- ============================================================== -->
         <div class="navbar-header">
-            <a class="navbar-brand" href="index.html">
+            <a class="navbar-brand" routerLink="/">
                 <!-- Logo icon --><b>
                     <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
                     <!-- Dark Logo icon -->
@@ -171,9 +171,12 @@
                             <li><a href="#"><i class="ti-wallet"></i> My Balance</a></li>
                             <li><a href="#"><i class="ti-email"></i> Inbox</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#"><i class="ti-settings"></i> Account Setting</a></li>
+                            <li><a routerLink="account-settings"><i class="ti-settings"></i> Account Setting</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#"><i class="fa fa-power-off"></i> Logout</a></li>
+                            <li><a routerLink="/login">
+                                <i class="fa fa-power-off"></i> 
+                                Logout</a>
+                            </li>
                         </ul>
                     </div>
                 </li>

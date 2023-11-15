@@ -15,6 +15,7 @@ import { Grafica1Component } from './dashboard/grafica1/grafica1.component';
 import { PagesComponent } from './pages.component';
 import { ProgressComponent } from './dashboard/progress/progress.component';
 import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.component';
+import { AccountSettingsComponent } from './account-settings/account-settings.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.compone
     Grafica1Component,
     PagesComponent,
     JuegosAzarComponent,
+    AccountSettingsComponent,
     
   ],
   exports: [
@@ -30,6 +32,7 @@ import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.compone
     ProgressComponent,
     Grafica1Component,
     PagesComponent,
+    AccountSettingsComponent,
   ],
   imports: [
     CommonModule,
