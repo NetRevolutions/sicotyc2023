@@ -11,6 +11,8 @@ import { EvaluacionServicioComponent } from './operaciones/evaluacion-servicio/e
 import { OperacionesComponent } from './operaciones/operaciones.component';
 import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.component';
 import { AccountSettingsComponent } from './account-settings/account-settings.component';
+import { PromesasComponent } from './promesas/promesas.component';
+import { RxjsComponent } from './rxjs/rxjs.component';
 
 const routes: Routes = [
     { 
@@ -18,21 +20,23 @@ const routes: Routes = [
         path:'dashboard', 
         component: PagesComponent,
         children: [
-            { path: '', component: DashboardComponent },
-            { path: 'progress', component: ProgressComponent },
-            { path: 'grafica1', component: Grafica1Component },
-            { path: 'juegos-azar', component: JuegosAzarComponent },
-            { path: 'account-settings', component: AccountSettingsComponent },
+            { path: '', component: DashboardComponent, data: {title: 'Dashboard' } },
+            { path: 'progress', component: ProgressComponent, data: {title: 'Progress Bar' } },
+            { path: 'grafica1', component: Grafica1Component, data: {title: 'Grafica 1' } },
+            { path: 'juegos-azar', component: JuegosAzarComponent, data: {title: 'Juegos Azar' } },
+            { path: 'promesas', component: PromesasComponent, data: {title: 'Promesas' } },
+            { path: 'rxjs', component: RxjsComponent, data: {title: 'rxJS' } },
+            { path: 'account-settings', component: AccountSettingsComponent, data: {title: 'Account Settings' } },
         ] 
     },
     {
         path: 'operaciones',
         component: PagesComponent,
         children: [
-            { path: '', component: OperacionesComponent },
-            { path: 'calculo-tarifas', component: CalculoTarifasComponent },
-            { path: 'evaluacion-servicio', component: EvaluacionServicioComponent },
-            { path: 'creacion-servicio', component: CreacionServicioComponent }
+            { path: '', component: OperacionesComponent, data: {title: 'Operaciones' } },
+            { path: 'calculo-tarifas', component: CalculoTarifasComponent, data: {title: 'Calculo de Tarifas' } },
+            { path: 'evaluacion-servicio', component: EvaluacionServicioComponent, data: {title: 'Evaluacion de Servicio' } },
+            { path: 'creacion-servicio', component: CreacionServicioComponent, data: {title: 'Creacion de Servicio' } }
         ]
     }
 ];
