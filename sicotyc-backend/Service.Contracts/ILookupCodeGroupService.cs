@@ -1,8 +1,8 @@
 ﻿using Entities.Models;
 
-namespace Contracts
+namespace Service.Contracts
 {
-    public interface ILookupCodeGroupRepository
+    public interface ILookupCodeGroupService
     {
         IEnumerable<LookupCodeGroup> GetAllLookupCodeGroups(bool trackChanges);
     }

@@ -12,8 +12,12 @@ namespace Repository
     {
         public LookupCodeGroupRepository(RepositoryContext repositoryContext)
             : base(repositoryContext)
-        {
-            
+        {            
         }
+
+        public IEnumerable<LookupCodeGroup> GetAllLookupCodeGroups(bool trackChanges) =>
+            FindAll(trackChanges)
+            .OrderBy(x => x.Name)
+            .ToList();
     }
 }
