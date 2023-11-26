@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.HttpOverrides;
 using Sicotyc.Extensions;
 using NLog;
+using Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,7 @@ builder.Services.ConfigureLoggerService();
 builder.Services.ConfigureRepositoryManager();
 builder.Services.ConfigureServiceManager();
 builder.Services.ConfigureSqlContext(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddControllers();
 
@@ -23,15 +25,24 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILoggerManager>();
+app.ConfigureExceptionHandler(logger);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage(); // Mostrado solo en modo DEV
+
+    //app.UseDeveloperExceptionPage(); // Mostrado solo en modo DEV
+    // Lo comentamos porque vamos a manejarlo con nuestro middleware de errores personalizado.
 }
-else { 
+else if (app.Environment.IsProduction()) { 
     app.UseHsts(); // Agrega un Strict-Transport-Security header
+}
+else
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Entities.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Service.Contracts;
@@ -16,17 +17,18 @@ namespace Sicotyc.Controllers
         [HttpGet]
         public IActionResult GetLookupCodeGroups() // Mejorar para cambiarlo por ActionResult
         {
-            try
-            {
-                var lookupCodeGroups = _service.LookupCodeGroupService.GetAllLookupCodeGroups(trackChanges: false);
-                return Ok(lookupCodeGroups);
-            }
-            catch 
-            {
-                return StatusCode(500, "Internal Server Error");
-            }
+            // throw new Exception("Exception"); // Usado para pruebas
+            var lookupCodeGroups = _service.LookupCodeGroupService.GetAllLookupCodeGroups(trackChanges: false);
+            return Ok(lookupCodeGroups);
         }
 
+        [HttpGet("{id:guid}")]
+        public IActionResult GetLookupCodeGroup(Guid id)
+        {
+            var lookupCodeGroup = _service.LookupCodeGroupService.GetLookupCodeGroup(id, trackChanges: false);
+            
+            return Ok(lookupCodeGroup);
+        }
         //[HttpGet]
         //public ActionResult<IEnumerable<string>> Get() {
             

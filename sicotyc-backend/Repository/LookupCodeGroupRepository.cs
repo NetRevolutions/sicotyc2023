@@ -19,5 +19,9 @@ namespace Repository
             FindAll(trackChanges)
             .OrderBy(x => x.Name)
             .ToList();
+
+        public LookupCodeGroup GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges) =>
+            FindByCondition(l => l.Id.Equals(lookupCodeGroupId), trackChanges)
+            .SingleOrDefault();
     }
 }

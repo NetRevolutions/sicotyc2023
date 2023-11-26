@@ -15,5 +15,13 @@ namespace Repository
         {
             
         }
+
+        public IEnumerable<LookupCode> GetLookupCodes(Guid lookupCodeGroupId, bool trackchanges) =>
+            FindByCondition(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId), trackchanges)
+            .OrderBy(lc => lc.LookupCodeOrder)
+            .ToList();
+        public LookupCode GetLookupCode(Guid lookupCodeGroupId, Guid Id, bool trackChanges) =>
+            FindByCondition(lc => lookupCodeGroupId.Equals(lookupCodeGroupId) && lc.Id.Equals(Id), trackChanges)
+            .SingleOrDefault();
     }
 }
