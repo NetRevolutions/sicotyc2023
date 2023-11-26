@@ -1,0 +1,14 @@
+<ng-container>
+    <i *ngFor="let item of maximoRatingArr; let index = index" 
+        class="fa fa-star" aria-hidden="true"
+        (mouseenter)="manejarMouseEnter(index)"
+        (mouseleave)="manejarMouseLeave()"
+        (click)="rate(index)"
+        [ngClass]="{checked: ratingSeleccionado > index}"
+    ></i>
+</ng-container>
+    
+
+
+    
+
