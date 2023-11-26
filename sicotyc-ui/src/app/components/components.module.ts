@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SimuladorTinkaComponent } from './simulador-tinka/simulador-tinka.component';
 import { DonaComponent } from './dona/dona.component';
 import { NgChartsModule } from 'ng2-charts';
+import { RatingComponent } from './rating/rating.component';
 
 
 
@@ -12,12 +13,14 @@ import { NgChartsModule } from 'ng2-charts';
   declarations: [
     IncrementadorComponent,
     SimuladorTinkaComponent,
-    DonaComponent
+    DonaComponent,
+    RatingComponent
   ],
   exports: [
     IncrementadorComponent,
     SimuladorTinkaComponent,
-    DonaComponent
+    DonaComponent,
+    RatingComponent
   ],
   imports: [
     CommonModule,
