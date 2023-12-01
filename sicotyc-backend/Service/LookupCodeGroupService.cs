@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Contracts;
+using Entities.DataTransferObjects;
 using Entities.Exceptions;
 using Service.Contracts;
-using Shared.DataTransferObjects;
 
 namespace Service
 {

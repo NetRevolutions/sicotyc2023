@@ -17,7 +17,13 @@ builder.Services.ConfigureServiceManager();
 builder.Services.ConfigureSqlContext(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Program));
 
-builder.Services.AddControllers();
+//builder.Services.AddControllers(); // Por defecto solo devuelve en text/json
+
+// Hacer que devuelve en otros formatos
+builder.Services.AddControllers(config => { 
+    config.RespectBrowserAcceptHeader = true; // Con esto habilito otros tipos de respuestas (ej. text/xml) 
+    config.ReturnHttpNotAcceptable = true; // Con esto retrinjo respuestas aceptables (ej: text/json, text/xml
+}).AddXmlDataContractSerializerFormatters(); // Serializo en XML
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

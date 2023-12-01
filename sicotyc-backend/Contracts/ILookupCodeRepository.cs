@@ -1,15 +1,14 @@
 ﻿using Entities.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Contracts
 {
     public interface ILookupCodeRepository
     {
         IEnumerable<LookupCode> GetLookupCodes(Guid lookupCodeGroupId, bool trackchanges);
-        LookupCode GetLookupCode(Guid lookupCodeGroupId, Guid Id, bool trackChanges);
+        LookupCode GetLookupCode(Guid lookupCodeGroupId, Guid id, bool trackChanges);
+        int GetLastLookupCodeOrder(Guid lookupCodeGroupId);
+        void CreateLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId,  LookupCode lookupCode);        
+        void DeleteLookupCode(LookupCode lookupCode);
+        IEnumerable<LookupCode> GetByIds(IEnumerable<Guid> ids, bool trackChanges);
     }
 }

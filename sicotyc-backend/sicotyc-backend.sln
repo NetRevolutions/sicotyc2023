@@ -9,15 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contracts", "Contracts\Cont
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggerService", "LoggerService\LoggerService.csproj", "{E5B0CF37-75A5-4B21-85C2-2D5442566D0B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Entities", "Entities\Entities.csproj", "{D83FF841-0245-45E0-A717-A65AEEE18A7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Entities", "Entities\Entities.csproj", "{D83FF841-0245-45E0-A717-A65AEEE18A7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{DC6DE5EB-CC26-4FBA-BFBC-FD9523867E6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repository", "Repository\Repository.csproj", "{DC6DE5EB-CC26-4FBA-BFBC-FD9523867E6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.Contracts", "Service.Contracts\Service.Contracts.csproj", "{B445E077-2456-4A5B-A543-C52565A61A3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service.Contracts", "Service.Contracts\Service.Contracts.csproj", "{B445E077-2456-4A5B-A543-C52565A61A3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "Service\Service.csproj", "{4060F238-D9C0-4928-8B38-CEA47CAA6EAD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{6095A0B7-0AA0-43AA-AC9E-C2907E3FCFD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service", "Service\Service.csproj", "{4060F238-D9C0-4928-8B38-CEA47CAA6EAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,10 +51,6 @@ Global
 		{4060F238-D9C0-4928-8B38-CEA47CAA6EAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4060F238-D9C0-4928-8B38-CEA47CAA6EAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4060F238-D9C0-4928-8B38-CEA47CAA6EAD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6095A0B7-0AA0-43AA-AC9E-C2907E3FCFD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6095A0B7-0AA0-43AA-AC9E-C2907E3FCFD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6095A0B7-0AA0-43AA-AC9E-C2907E3FCFD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6095A0B7-0AA0-43AA-AC9E-C2907E3FCFD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

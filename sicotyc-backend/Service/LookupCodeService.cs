@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Contracts;
+using Entities.DataTransferObjects;
 using Entities.Exceptions;
 using Service.Contracts;
-using Shared.DataTransferObjects;
 
 namespace Service
 {
@@ -17,7 +17,7 @@ namespace Service
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
-        }
+        }        
 
         public LookupCodeDto GetLookupCode(Guid lookupCodeGroupId, Guid id, bool trackChanges)
         {

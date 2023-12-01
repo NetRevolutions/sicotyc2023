@@ -20,8 +20,19 @@ namespace Repository
             .OrderBy(x => x.Name)
             .ToList();
 
-        public LookupCodeGroup GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges) =>
-            FindByCondition(l => l.Id.Equals(lookupCodeGroupId), trackChanges)
+        public LookupCodeGroup GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges) => 
+            FindByCondition(l => l.Id.Equals(lookupCodeGroupId), trackChanges)            
             .SingleOrDefault();
+
+        public void CreateLookupCodeGroup(LookupCodeGroup lookupCodeGroup) => Create(lookupCodeGroup);
+                
+        public IEnumerable<LookupCodeGroup> GetByIds(IEnumerable<Guid> ids, bool trackChanges) =>
+            FindByCondition(x => ids.Contains(x.Id), trackChanges)
+            .ToList();
+
+        public void DeleteLookupCodeGroup(LookupCodeGroup lookupCodeGroup)
+        {
+            Delete(lookupCodeGroup);
+        }
     }
 }

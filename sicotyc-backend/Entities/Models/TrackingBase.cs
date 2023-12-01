@@ -13,7 +13,7 @@ namespace Entities.Models
         public DateTime CreateDtm { get; set; } = DateTime.UtcNow;
 
         [MaxLength(60, ErrorMessage = "La longitud maxima del usuario de creacion es de 60 caracteres")]
-        public string? UpdateBy { get; set; }
+        public string? UpdatedBy { get; set; }
 
         [Column("LastUpdatedOn", TypeName = "datetime2")]
         public DateTime? UpdateDtm { get; set; }

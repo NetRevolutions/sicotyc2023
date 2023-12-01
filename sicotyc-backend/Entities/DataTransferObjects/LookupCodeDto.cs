@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.DataTransferObjects
+namespace Entities.DataTransferObjects
 {
     /**
      * Nota: No recomiendo usar record porque dificulta devolverlo en otro formato diferente de JSON 
