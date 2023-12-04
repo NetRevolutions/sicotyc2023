@@ -19,15 +19,15 @@ namespace Service
             _mapper = mapper;
         }        
 
-        public LookupCodeDto GetLookupCode(Guid lookupCodeGroupId, Guid id, bool trackChanges)
+        public async Task<LookupCodeDto> GetLookupCodeAsync(Guid lookupCodeGroupId, Guid id, bool trackChanges)
         {
-            var lookupCodeGroup = _repository.LookupCodeGroup.GetLookupCodeGroup(lookupCodeGroupId, trackChanges);
+            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges);
             if (lookupCodeGroup == null)
             {
                 throw new LookupCodeGroupNotFoundException(lookupCodeGroupId);
             }
 
-            var lookupCodeDb = _repository.LookupCode.GetLookupCode(lookupCodeGroupId, id, trackChanges);
+            var lookupCodeDb = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges);
             if (lookupCodeDb == null) 
             {
                 throw new LookupCodeNotFoundException(id);
@@ -37,15 +37,15 @@ namespace Service
             return lookupCode;
         }
 
-        public IEnumerable<LookupCodeDto> GetLookupCodes(Guid lookupCodeGroupId, bool trackChanges)
+        public async Task<IEnumerable<LookupCodeDto>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackChanges)
         {
-            var lookupCodeGroup = _repository.LookupCodeGroup.GetLookupCodeGroup(lookupCodeGroupId, trackChanges);
+            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges);
             if (lookupCodeGroup == null)
             {
                 throw new LookupCodeGroupNotFoundException(lookupCodeGroupId);
             }
 
-            var lookupCodesFromDb = _repository.LookupCode.GetLookupCodes(lookupCodeGroupId, trackChanges);
+            var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, trackChanges);
             var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
 
             return lookupCodesDto;

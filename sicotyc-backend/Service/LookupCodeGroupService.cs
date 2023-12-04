@@ -19,9 +19,9 @@ namespace Service
             _mapper = mapper;
         }
 
-        public IEnumerable<LookupCodeGroupDto> GetAllLookupCodeGroups(bool trackChanges)
+        public async Task<IEnumerable<LookupCodeGroupDto>> GetAllLookupCodeGroupsAsync(bool trackChanges)
         {
-            var lookupCodeGroups = _repository.LookupCodeGroup.GetAllLookupCodeGroups(trackChanges);
+            var lookupCodeGroups = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(trackChanges);
 
             //var lookupCodeGroupsDto = lookupCodeGroups.Select(l => new LookupCodeGroupDto(l.Id, l.Name ?? "")).ToList();
 
@@ -29,9 +29,9 @@ namespace Service
             return lookupCodeGroupsDto;
         }
 
-        public LookupCodeGroupDto GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges)
+        public async Task<LookupCodeGroupDto> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges)
         {
-            var lookupCodeGroup = _repository.LookupCodeGroup.GetLookupCodeGroup(lookupCodeGroupId, trackChanges);
+            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges);
             if (lookupCodeGroup == null)
             {
                 throw new LookupCodeGroupNotFoundException(lookupCodeGroupId);

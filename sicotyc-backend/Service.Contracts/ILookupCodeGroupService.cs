@@ -6,7 +6,7 @@ namespace Service.Contracts
 {
     public interface ILookupCodeGroupService
     {
-        IEnumerable<LookupCodeGroupDto> GetAllLookupCodeGroups(bool trackChanges);
-        LookupCodeGroupDto GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges);
+        Task<IEnumerable<LookupCodeGroupDto>> GetAllLookupCodeGroupsAsync(bool trackChanges);
+        Task<LookupCodeGroupDto> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges);
     }
 }

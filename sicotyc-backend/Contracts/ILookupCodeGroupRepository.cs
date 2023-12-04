@@ -4,10 +4,10 @@ namespace Contracts
 {
     public interface ILookupCodeGroupRepository
     {
-        IEnumerable<LookupCodeGroup> GetAllLookupCodeGroups(bool trackChanges);
-        LookupCodeGroup GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges);
+        Task<IEnumerable<LookupCodeGroup>> GetAllLookupCodeGroupsAsync(bool trackChanges);
+        Task<LookupCodeGroup> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges);
 
-        IEnumerable<LookupCodeGroup> GetByIds(IEnumerable<Guid> ids, bool trackChanges);
+        Task<IEnumerable<LookupCodeGroup>> GetByIdsAsync(IEnumerable<Guid> ids, bool trackChanges);
         void CreateLookupCodeGroup(LookupCodeGroup lookupCodeGroup);
         void DeleteLookupCodeGroup(LookupCodeGroup lookupCodeGroup);
     }

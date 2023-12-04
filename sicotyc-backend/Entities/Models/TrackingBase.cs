@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Entities.Models
 {
-    public class TrackingBase
+    public abstract class TrackingBase
     {        
         [Required(ErrorMessage = "El usuario de creacion es requerido")]
         [MaxLength(60, ErrorMessage ="La longitud maxima del usuario de creacion es de 60 caracteres")]

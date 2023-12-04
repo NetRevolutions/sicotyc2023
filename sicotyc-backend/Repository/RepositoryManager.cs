@@ -1,9 +1,4 @@
 ﻿using Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repository
 {
@@ -23,6 +18,6 @@ namespace Repository
 
         public ILookupCodeRepository LookupCode => _lookupCodeRepository.Value;
 
-        public void Save() => _repositoryContext.SaveChanges();
+        public Task SaveAsync() => _repositoryContext.SaveChangesAsync();
     }
 }

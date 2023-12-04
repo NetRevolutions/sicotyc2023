@@ -1,10 +1,6 @@
 ﻿using Contracts;
 using Entities.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository
 {
@@ -16,13 +12,25 @@ namespace Repository
             
         }
 
-        public IEnumerable<LookupCode> GetLookupCodes(Guid lookupCodeGroupId, bool trackchanges) =>
-            FindByCondition(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId), trackchanges)
+        public async Task<IEnumerable<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackchanges) =>
+            await FindByCondition(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId), trackchanges)
             .OrderBy(lc => lc.LookupCodeOrder)
-            .ToList();
-        public LookupCode GetLookupCode(Guid lookupCodeGroupId, Guid id, bool trackChanges) =>
-            FindByCondition(lc => lookupCodeGroupId.Equals(lookupCodeGroupId) && lc.Id.Equals(id), trackChanges)
-            .SingleOrDefault();
+            .ToListAsync();
+
+        public async Task<LookupCode> GetLookupCodeAsync(Guid lookupCodeGroupId, Guid id, bool trackChanges) =>
+            await FindByCondition(lc => lookupCodeGroupId.Equals(lookupCodeGroupId) && lc.Id.Equals(id), trackChanges)
+            .SingleOrDefaultAsync();
+
+        public async Task<int> GetLastLookupCodeOrderAsync(Guid lookupCodeGroupId) =>            
+            await FindByCondition(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId), false)
+            .Where(w => !w.DeleteDtm.HasValue)
+            .OrderByDescending(o => o.LookupCodeOrder)
+            .Select(s => s.LookupCodeOrder)
+            .FirstOrDefaultAsync();
+
+        public async Task<IEnumerable<LookupCode>> GetByIdsAsync(IEnumerable<Guid> ids, bool trackChanges) =>
+            await FindByCondition(x => ids.Contains(x.Id), trackChanges)
+            .ToListAsync();
 
         public void CreateLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, LookupCode lookupCode)
         {
@@ -35,16 +43,6 @@ namespace Repository
             Delete(lookupCode);
         }
 
-        public int GetLastLookupCodeOrder(Guid lookupCodeGroupId) =>            
-            FindByCondition(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId), false)
-            .Where(w => !w.DeleteDtm.HasValue)
-            .OrderByDescending(o => o.LookupCodeOrder)
-            .Select(s => s.LookupCodeOrder)
-            .FirstOrDefault();
-
-        public IEnumerable<LookupCode> GetByIds(IEnumerable<Guid> ids, bool trackChanges) =>
-            FindByCondition(x => ids.Contains(x.Id), trackChanges)
-            .ToList();
             
     }
 }

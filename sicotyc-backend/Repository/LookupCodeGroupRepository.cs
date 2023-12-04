@@ -1,10 +1,6 @@
 ﻿using Contracts;
 using Entities.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository
 {
@@ -15,21 +11,20 @@ namespace Repository
         {            
         }
 
-        public IEnumerable<LookupCodeGroup> GetAllLookupCodeGroups(bool trackChanges) =>
-            FindAll(trackChanges)
+        public async Task<IEnumerable<LookupCodeGroup>> GetAllLookupCodeGroupsAsync(bool trackChanges) =>
+            await FindAll(trackChanges)
             .OrderBy(x => x.Name)
-            .ToList();
+            .ToListAsync();
 
-        public LookupCodeGroup GetLookupCodeGroup(Guid lookupCodeGroupId, bool trackChanges) => 
-            FindByCondition(l => l.Id.Equals(lookupCodeGroupId), trackChanges)            
-            .SingleOrDefault();
+        public async Task<LookupCodeGroup> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges) => 
+            await FindByCondition(l => l.Id.Equals(lookupCodeGroupId), trackChanges)            
+            .SingleOrDefaultAsync();
+        public async Task<IEnumerable<LookupCodeGroup>> GetByIdsAsync(IEnumerable<Guid> ids, bool trackChanges) =>
+            await FindByCondition(x => ids.Contains(x.Id), trackChanges)
+            .ToListAsync();
 
         public void CreateLookupCodeGroup(LookupCodeGroup lookupCodeGroup) => Create(lookupCodeGroup);
                 
-        public IEnumerable<LookupCodeGroup> GetByIds(IEnumerable<Guid> ids, bool trackChanges) =>
-            FindByCondition(x => ids.Contains(x.Id), trackChanges)
-            .ToList();
-
         public void DeleteLookupCodeGroup(LookupCodeGroup lookupCodeGroup)
         {
             Delete(lookupCodeGroup);
