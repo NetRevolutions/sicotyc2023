@@ -20,6 +20,7 @@ namespace Sicotyc
                 .ForMember(d => d.Name, opt => opt.MapFrom(o => o.LookupCodeGroupName))
                 .ForMember(d => d.UpdateDtm, opt => opt.MapFrom(o => o.LastUpdatedOn));
             CreateMap<LookupCodeCollectionForCreationDto, LookupCode>();
+            CreateMap<UserForRegistrationDto, User>();
         }
     }
 }

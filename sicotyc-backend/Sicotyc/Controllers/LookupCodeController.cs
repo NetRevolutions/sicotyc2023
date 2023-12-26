@@ -2,9 +2,13 @@
 using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
+using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Service.Contracts;
+using Sicotyc.ActionFilters;
 using Sicotyc.ModelBinders;
+
 
 namespace Sicotyc.Controllers
 {
@@ -26,10 +30,20 @@ namespace Sicotyc.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLookupCodesForLookupCodeGroup(Guid lookupCodeGroupId)
+        public async Task<IActionResult> GetLookupCodesForLookupCodeGroup(Guid lookupCodeGroupId, [FromQuery]LookupCodeParameters lookupCodeParameters)
         {
-            var lookupCodes = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, trackchanges: false);               
-            var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodes);
+            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
+            if (lookupCodeGroup == null)
+            {
+                _logger.LogInfo($"El LookupCode con id: {lookupCodeGroupId} no existe en la base de datos.");
+                return NotFound();
+            }
+
+            var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, lookupCodeParameters, trackChanges: false);
+
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(lookupCodesFromDb.MetaData));
+            
+            var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
             return Ok(lookupCodesDto);
         }
 
@@ -71,20 +85,9 @@ namespace Sicotyc.Controllers
         }
 
         [HttpPost("collection")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateLookupCodeCollectionForLookupCodeGroup(Guid lookupCodeGroupId, [FromBody] LookupCodeCollectionForCreationDto lookupCodes) 
         {
-            if (lookupCodes == null)
-            {
-                _logger.LogError("El objeto LookupCodeCollectionForCreationDto enviado por el cliente es nulo");
-                return BadRequest("Objeto LookupCodeCollectionForCreationDto es nulo.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state for the LookupCodeCollectionForCreationDto object");
-                return UnprocessableEntity(ModelState);
-            }
-
             var lastLookupCodeOrder = await _repository.LookupCode.GetLastLookupCodeOrderAsync(lookupCodeGroupId);
             lastLookupCodeOrder++;
 
@@ -117,20 +120,9 @@ namespace Sicotyc.Controllers
         }
 
         [HttpPost]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, [FromBody] LookupCodeForCreationDto lookupCode)
         {
-            if (lookupCode == null)
-            {
-                _logger.LogError("El objeto LookupCodeForCreationDto enviado por el cliente es nulo.");
-                return BadRequest("Objeto LookupCodeForCreationDto es nulo.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state for the LookupCodeForCreationDto object");
-                return UnprocessableEntity(ModelState);
-            }
-
             var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
             if (lookupCodeGroup == null)
             {
@@ -156,46 +148,12 @@ namespace Sicotyc.Controllers
             var lookupCodeToReturn = _mapper.Map<LookupCodeDto>(lookupCodeEntity);
 
             return CreatedAtRoute("GetLookupCodeForLookupCodeGroup", new { lookupCodeGroupId, id = lookupCodeToReturn.Id }, lookupCodeToReturn);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId,  Guid id)
-        {
-            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
-            if ( lookupCodeGroup == null)
-            {
-                _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos");
-                return NotFound();
-            }
-
-            var lookupCodeForLookupCodeGroup = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges: false);
-            if (lookupCodeForLookupCodeGroup == null)
-            {
-                _logger.LogInfo($"LookupCode con id: {id} no existe en la base de datos.");
-                return NotFound();
-            }
-
-            _repository.LookupCode.DeleteLookupCode(lookupCodeForLookupCodeGroup);
-            await _repository.SaveAsync();
-
-            return NoContent();
-        }
+        }        
 
         [HttpPut("{id}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, Guid id, [FromBody]LookupCodeForUpdateDto lookupCode)
         {
-            if (lookupCode == null)
-            {
-                _logger.LogError("El objeto LookupCodeForUpdateDto enviado desde el cliente es nulo.");
-                return BadRequest("LookupCodeGroupForUpdateDto es nulo.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state for the LookupCodeForUpdateDto object");
-                return UnprocessableEntity(ModelState);
-            }
-
             var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
             if (lookupCodeGroup == null)
             {
@@ -212,6 +170,29 @@ namespace Sicotyc.Controllers
 
             _mapper.Map(lookupCode, lookupCodeEntity);
             
+            await _repository.SaveAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, Guid id)
+        {
+            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
+            if (lookupCodeGroup == null)
+            {
+                _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos");
+                return NotFound();
+            }
+
+            var lookupCodeForLookupCodeGroup = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges: false);
+            if (lookupCodeForLookupCodeGroup == null)
+            {
+                _logger.LogInfo($"LookupCode con id: {id} no existe en la base de datos.");
+                return NotFound();
+            }
+
+            _repository.LookupCode.DeleteLookupCode(lookupCodeForLookupCodeGroup);
             await _repository.SaveAsync();
 
             return NoContent();

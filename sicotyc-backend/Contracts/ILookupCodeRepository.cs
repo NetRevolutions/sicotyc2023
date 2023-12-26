@@ -1,10 +1,11 @@
 ﻿using Entities.Models;
+using Entities.RequestFeatures;
 
 namespace Contracts
 {
     public interface ILookupCodeRepository
     {
-        Task<IEnumerable<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackchanges);
+        Task<PagedList<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, LookupCodeParameters lookupCodeParameters, bool trackChanges);
         Task<LookupCode> GetLookupCodeAsync(Guid lookupCodeGroupId, Guid id, bool trackChanges);
         Task<int> GetLastLookupCodeOrderAsync(Guid lookupCodeGroupId);
         Task<IEnumerable<LookupCode>> GetByIdsAsync(IEnumerable<Guid> ids, bool trackChanges);

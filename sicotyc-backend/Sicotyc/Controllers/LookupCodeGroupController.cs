@@ -2,8 +2,10 @@
 using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
+using Sicotyc.ActionFilters;
 using Sicotyc.ModelBinders;
 
 namespace Sicotyc.Controllers
@@ -24,7 +26,9 @@ namespace Sicotyc.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet]
+        //[HttpGet]
+        //[HttpGet(Name = "GetLookupCodeGroups"), Authorize] // Con esto implementamos autorizacion a los endpoints que deseamos
+        [HttpGet(Name = "GetLookupCodeGroups"), Authorize(Roles = "Manager,Administrator")] // Con esto indicamos que solo un determinado rol tiene acceso
         public async Task<IActionResult> GetLookupCodeGroups() // Mejorar para cambiarlo por ActionResult
         {
             // throw new Exception("Exception"); // Usado para pruebas
@@ -73,19 +77,9 @@ namespace Sicotyc.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateLookupCodeGroup([FromBody] LookupCodeGroupForCreationDto lookupCodeGroup) {
-            if (lookupCodeGroup == null)
-            {
-                _logger.LogError("El objeto LookupCodeGroupForCreationDto enviado del cliente es nulo");
-                return BadRequest("El objeto LookupCodeGroupForCreationDto es nulo");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model estate for the LookupCodeGroupForCreationDto object");
-                return UnprocessableEntity(ModelState);
-            }
-
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> CreateLookupCodeGroup([FromBody] LookupCodeGroupForCreationDto lookupCodeGroup) 
+        {
             var lookupCodeGroupEntity = _mapper.Map<LookupCodeGroup>(lookupCodeGroup);
 
             if (lookupCodeGroupEntity.LookupCodes?.Count > 0)
@@ -105,20 +99,9 @@ namespace Sicotyc.Controllers
         }
 
         [HttpPost("collection")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateLookupCodeGroupCollection([FromBody] IEnumerable<LookupCodeGroupForCreationDto> lookupCodeGroupCollection) 
         { 
-            if (lookupCodeGroupCollection == null)
-            {
-                _logger.LogError("La coleccion de LookupCodeGroups enviados desde el cliente es nula");
-                return BadRequest("La coleccion de LookupCodeGroups es nula");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state for the IEnumerable<LookupCodeGroupForCreationDto> object");
-                return UnprocessableEntity(ModelState);
-            }
-
             var lookupCodeGroupEntities = _mapper.Map<IEnumerable<LookupCodeGroup>>(lookupCodeGroupCollection);
             foreach (var lookupCodeGroup in lookupCodeGroupEntities) 
             {
@@ -134,20 +117,9 @@ namespace Sicotyc.Controllers
         }
 
         [HttpPut("{id}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateLookupCodeGroup(Guid id, [FromBody] LookupCodeGroupForUpdateDto lookupCodeGroup) 
         { 
-            if (lookupCodeGroup == null)
-            {
-                _logger.LogError("El objeto LookupCodeGroup enviado por el cliente es nulo.");
-                return BadRequest("El objeto LookupCodeGroup es nulo.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogError("Invalid model state for the LookupCodeGroupForUpdateDto object");
-                return UnprocessableEntity(ModelState);
-            }
-
             var lookupCodeGroupEntity = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(id, trackChanges: true);
             if (lookupCodeGroupEntity == null)
             {

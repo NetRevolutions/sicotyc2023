@@ -2,6 +2,7 @@
 using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Exceptions;
+using Entities.RequestFeatures;
 using Service.Contracts;
 
 namespace Service
@@ -37,7 +38,7 @@ namespace Service
             return lookupCode;
         }
 
-        public async Task<IEnumerable<LookupCodeDto>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackChanges)
+        public async Task<IEnumerable<LookupCodeDto>> GetLookupCodesAsync(Guid lookupCodeGroupId, LookupCodeParameters lookupCodeParameters, bool trackChanges)
         {
             var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges);
             if (lookupCodeGroup == null)
@@ -45,7 +46,7 @@ namespace Service
                 throw new LookupCodeGroupNotFoundException(lookupCodeGroupId);
             }
 
-            var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, trackChanges);
+            var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, lookupCodeParameters, trackChanges);
             var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
 
             return lookupCodesDto;

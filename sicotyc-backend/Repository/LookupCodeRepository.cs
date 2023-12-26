@@ -1,6 +1,8 @@
 ﻿using Contracts;
 using Entities.Models;
+using Entities.RequestFeatures;
 using Microsoft.EntityFrameworkCore;
+using Repository.Extensions;
 
 namespace Repository
 {
@@ -12,10 +14,22 @@ namespace Repository
             
         }
 
-        public async Task<IEnumerable<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackchanges) =>
-            await FindByCondition(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId), trackchanges)
-            .OrderBy(lc => lc.LookupCodeOrder)
-            .ToListAsync();
+        public async Task<PagedList<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, LookupCodeParameters lookupCodeParameters, bool trackChanges)
+        {            
+            var lookupCodes = await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges)
+                .Search(lookupCodeParameters.SearchTerm)
+                .Sort(lookupCodeParameters.OrderBy)
+                //.OrderBy(lc => lc.LookupCodeOrder)
+                //.Skip((lookupCodeParameters.PageNumber -1) * lookupCodeParameters.PageSize)
+                //.Take(lookupCodeParameters.PageSize)
+                .ToListAsync();
+
+            //var count = await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges).CountAsync();
+
+            //return new PagedList<LookupCode>(lookupCodes, lookupCodeParameters.PageNumber, lookupCodeParameters.PageSize, count);
+            return PagedList<LookupCode>
+                .ToPagedList(lookupCodes, lookupCodeParameters.PageNumber, lookupCodeParameters.PageSize);
+        }           
 
         public async Task<LookupCode> GetLookupCodeAsync(Guid lookupCodeGroupId, Guid id, bool trackChanges) =>
             await FindByCondition(lc => lookupCodeGroupId.Equals(lookupCodeGroupId) && lc.Id.Equals(id), trackChanges)

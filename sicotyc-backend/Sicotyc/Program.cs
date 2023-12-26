@@ -4,6 +4,7 @@ using NLog;
 using Contracts;
 using Microsoft.AspNetCore.Mvc;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 //LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -21,6 +22,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
+builder.Services.ConfigureValidationFilterAttribute();
 
 //builder.Services.AddControllers(); // Por defecto solo devuelve en text/json
 
@@ -28,11 +30,21 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddControllers(config => { 
     config.RespectBrowserAcceptHeader = true; // Con esto habilito otros tipos de respuestas (ej. text/xml) 
     config.ReturnHttpNotAcceptable = true; // Con esto retrinjo respuestas aceptables (ej: text/json, text/xml
+    //config.CacheProfiles.Add("120SecondsDuration", new CacheProfile { Duration = 120});
 }).AddXmlDataContractSerializerFormatters(); // Serializo en XML
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddMemoryCache();
+builder.Services.ConfigureRateLimitingOptions();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddAuthentication();
+builder.Services.ConfigureIdentity();
+builder.Services.ConfigureJWT(builder.Configuration);
+builder.Services.ConfigureSwagger();
 
 var app = builder.Build();
 
@@ -64,8 +76,14 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 });
 
 app.UseCors("CorsPolicy");
-
+app.UseAuthentication();
+//app.UseIpRateLimiting();
+app.UseRouting();
 app.UseAuthorization();
+app.UseEndpoints(endpoints => 
+{ 
+    endpoints.MapControllers();
+});
 
 /*
 app.Use(async (context, next) => {
