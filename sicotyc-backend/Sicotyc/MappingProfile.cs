@@ -21,6 +21,7 @@ namespace Sicotyc
                 .ForMember(d => d.UpdateDtm, opt => opt.MapFrom(o => o.LastUpdatedOn));
             CreateMap<LookupCodeCollectionForCreationDto, LookupCode>();
             CreateMap<UserForRegistrationDto, User>();
+            CreateMap<User, UserDto>();
         }
     }
 }

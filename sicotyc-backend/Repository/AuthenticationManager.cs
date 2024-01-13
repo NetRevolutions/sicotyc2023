@@ -1,23 +1,26 @@
 ﻿using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
+using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository
 {
-    public class AuthenticationManager : IAuthenticationManager
+    public class AuthenticationManager : RepositoryBase<User>, IAuthenticationManager
     {
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
 
         private User _user;
 
-        public AuthenticationManager(UserManager<User> userManager, IConfiguration configuration)
+        public AuthenticationManager(UserManager<User> userManager, IConfiguration configuration, RepositoryContext repositoryContext)
+            : base(repositoryContext)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -36,6 +39,36 @@ namespace Repository
             var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
 
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+        }
+
+        public async Task<PagedList<User>> GetUsersAsync(UserParameters userParameters, bool trackChanges)
+        {
+            var users = new List<User>();
+            if (!String.IsNullOrEmpty(userParameters.SearchTerm))
+            {
+                //users = await FindByCondition(u => u.UserName.Contains(userParameters.SearchTerm), trackChanges)                
+                //.OrderBy(o => o.FirstName)
+                //.ToListAsync();
+
+                users = await FindAll(trackChanges)
+                .Where(u => u.UserName.Contains(userParameters.SearchTerm) ||
+                            u.FirstName.Contains(userParameters.SearchTerm) ||
+                            u.LastName.Contains(userParameters.SearchTerm) ||
+                            u.Email.Contains(userParameters.SearchTerm))
+                .OrderBy(o => o.FirstName)
+                .ToListAsync();
+            }
+            else
+            {
+                users = await FindAll(trackChanges)                
+                    .OrderBy(o => o.FirstName)
+                    .ToListAsync();
+            }
+                
+               
+            return PagedList<User>
+                .ToPagedList(users, userParameters.PageNumber, userParameters.PageSize);
+                
         }
 
         private SigningCredentials GetSigningCredentials() 

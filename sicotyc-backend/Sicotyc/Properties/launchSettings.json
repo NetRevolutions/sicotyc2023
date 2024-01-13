@@ -1,14 +1,23 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
-    "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:1629",
       "sslPort": 44370
-    }
+    },
+    "windowsAuthentication": false
   },
   "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchBrowser": false,
+      //"launchUrl": "swagger",
+      "launchUrl": "weatherforecast"
+    },
     "sicotyc_backend": {
       "commandName": "Project",
       "dotnetRunMessages": true,
@@ -16,15 +25,6 @@
       //"launchUrl": "swagger",
       "launchUrl": "weatherforecast",
       "applicationUrl": "https://localhost:5001;http://localhost:5000",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": false,
-      //"launchUrl": "swagger",
-      "launchUrl": "weatherforecast",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
