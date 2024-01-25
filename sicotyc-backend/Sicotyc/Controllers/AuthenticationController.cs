@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Sicotyc.ActionFilters;
-using Sicotyc.ModelBinders;
 
 namespace Sicotyc.Controllers
 {
@@ -40,6 +39,8 @@ namespace Sicotyc.Controllers
                 _logger.LogWarn($"{nameof(Authenticate)}: Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
                 return Unauthorized();
             }
+
+            //var userDB = await _userManager.FindByNameAsync(user.UserName);
 
             return Ok(new { Token = await _authManager.CreateToken() });
         }
@@ -135,10 +136,14 @@ namespace Sicotyc.Controllers
 
                     return BadRequest(ModelState);
                 }
-                if (userForRegistration.Roles != null)
-                {
-                    await _userManager.AddToRolesAsync(user, userForRegistration.Roles);
+
+                if (userForRegistration.Roles == null || userForRegistration.Roles?.Count() == 0) {
+
+                    ICollection<string> roles = new List<string> { "Member" };
+                    userForRegistration.Roles = roles;
                 }
+
+                await _userManager.AddToRolesAsync(user, userForRegistration.Roles);                
 
                 return StatusCode(201); // 201 = Created
 

@@ -1,6 +1,7 @@
 ﻿using AspNetCoreRateLimit;
 using Contracts;
 using Entities.Models;
+using FluentEmail.Smtp;
 using LoggerService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -160,6 +161,36 @@ namespace Sicotyc.Extensions
                     }
                 });  
             });
+        }
+
+        public static void AddFluentEmail(this IServiceCollection services, ConfigurationManager configuration) 
+        {
+            var emailSettings = configuration.GetSection("EmailSettings");
+
+            var defaultFromEmail = emailSettings["DefaultFromEmail"];
+            var host = emailSettings["SMTPSetting:Host"];
+            var port = emailSettings.GetValue<int>("SMTPSetting:Port");
+            var userName = emailSettings["SMTPSetting:UserName"];
+            var password = emailSettings["SMTPSetting:Password"];
+
+
+            //System.Net.Mail.SmtpClient smtp = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+            //{                
+            //    EnableSsl = true,
+            //    Port = port,
+            //    DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network,
+            //    UseDefaultCredentials = false,
+            //    Credentials = new System.Net.NetworkCredential(userName, password)
+            //};
+
+            
+
+            services.AddFluentEmail(defaultFromEmail)
+                .AddSmtpSender(host, port, userName, password);
+                //.AddSmtpSender(smtp);
+                
+
+            services.AddScoped<IEmailService, EmailService>();
         }
     }
 }

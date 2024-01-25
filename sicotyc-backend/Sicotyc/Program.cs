@@ -45,6 +45,7 @@ builder.Services.AddAuthentication();
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJWT(builder.Configuration);
 builder.Services.ConfigureSwagger();
+builder.Services.AddFluentEmail(builder.Configuration);
 
 var app = builder.Build();
 
