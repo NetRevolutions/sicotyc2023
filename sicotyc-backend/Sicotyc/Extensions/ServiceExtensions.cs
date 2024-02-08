@@ -59,6 +59,9 @@ namespace Sicotyc.Extensions
         public static void ConfigureServiceManager(this IServiceCollection services) =>
             services.AddScoped<IServiceManager, ServiceManager>();
 
+        public static void ConfigureUploadFileService(this IServiceCollection services) =>
+            services.AddScoped<IUploadFileService, UploadFileService>();
+
         public static void ConfigureValidationFilterAttribute(this IServiceCollection services) =>
             services.AddScoped<ValidationFilterAttribute>();
 
@@ -73,7 +76,7 @@ namespace Sicotyc.Extensions
                 new RateLimitRule
                 { 
                     Endpoint = "*",
-                    Limit = 30,
+                    Limit = 100,
                     Period = "5m" // 5 minutos
                 }
             };

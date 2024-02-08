@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Enum;
 using Entities.Models;
 using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Identity;
@@ -42,7 +43,7 @@ namespace Sicotyc.Controllers
 
             //var userDB = await _userManager.FindByNameAsync(user.UserName);
 
-            return Ok(new { Token = await _authManager.CreateToken() });
+            return Ok(new { Token = await _authManager.CreateTokenAsync() });
         }
 
         [HttpPost("change-password")]
@@ -114,7 +115,107 @@ namespace Sicotyc.Controllers
                 _logger.LogError($"Ocurrio un error al intentar resetear la contraseña para el usuario con el id: {model.UserId}");
                 return BadRequest(result.Errors);
             }
-        }        
+        }
+
+        [HttpGet("claims")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetClaims([FromQuery] string token) {
+            try
+            {
+                // Aplicamos una restriccion de que Claims podemos devolver.
+                LookupCodeParameters lookupCodeParameters = new LookupCodeParameters();
+                
+                var lookupCodeGroup = await _respository.LookupCodeGroup.GetLookupCodeGroupByNameAsync(LookupCodeGroupEnum.CLAIMS_PERMITIDOS.GetStringValue(), trackChanges: false);
+                if (lookupCodeGroup == null)
+                    return NoContent();
+
+                var lookupCodesFromDb = await _respository.LookupCode.GetLookupCodesAsync(lookupCodeGroup.Id, lookupCodeParameters, trackChanges: false);
+                var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
+
+                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
+
+                if (claims.Count() > 0)
+                {
+                    List<ClaimMetadata> result = new List<ClaimMetadata>();
+
+                    // Evaluamos para ver que Claims enviamos
+                    foreach (var item in claims)
+                    {
+                        if (lookupCodesDto.Any(c => c.LookupCodeValue?.Trim().ToLower() == item.Type?.Trim().ToLower()))
+                        { 
+                            result.Add(item);
+                        }
+                    }
+
+                    return Ok(new { Claims = result });
+                }
+                else
+                {
+                    return NoContent(); // No contiene claims
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Se produjo un error al intentar leer el token {token}");
+                return BadRequest(ex.Message);
+            }
+            
+        }
+
+        [HttpGet("validateJWT")]
+        public async Task<IActionResult> ValidateJWT() {
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            {
+                // Puedes trabajar con el valor del encabezado aquí
+                string token = tokenHeaderValue.ToString();
+                if (token == null) {
+                    return BadRequest("No hay token en la peticion");
+                }
+
+                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
+                if (claims.Count() > 0)
+                {                    
+                    return Ok(new ValidateJWT { 
+                        Uid = claims.Find(x => x.Type == "Id")?.Value,
+                        Roles = claims.FindAll(x => x.Type == "Role").Select(x => x.Value).ToList()
+                    });
+                }
+                return BadRequest("Token no valido");                
+            }
+
+            return BadRequest("Token no valido");
+        }
+
+        [HttpGet("renewToken")]
+        public async Task<IActionResult> RenewToken()
+        {
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            {
+                // Puedes trabajar con el valor del encabezado aquí
+                string token = tokenHeaderValue.ToString();
+                if (token == null)
+                {
+                    return BadRequest("No hay token en la peticion");
+                }
+
+                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
+
+                if (claims.Count() > 0)
+                {
+                    string? uid = claims.Find(x => x.Type == "Id")?.Value;
+                    var renewToken = _authManager.RenewTokenAsync(uid.ToString());
+                    return Ok(new { Token = renewToken.Result.Token,
+                                    User = _mapper.Map<UserDto>(renewToken.Result.User),
+                                    Roles = renewToken.Result.Roles});
+                }
+                return BadRequest("Token no valido");
+            }
+            else {
+                return BadRequest("No hay token en la peticion");
+            }
+        }
 
         #region CRUD Users
 

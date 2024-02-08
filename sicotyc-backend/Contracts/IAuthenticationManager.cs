@@ -7,8 +7,9 @@ namespace Contracts
     public interface IAuthenticationManager
     {
         Task<bool> ValidateUser(UserForAuthenticationDto userForAuth);
-        Task<string> CreateToken(); 
+        Task<string> CreateTokenAsync();
+        Task<RenewToken> RenewTokenAsync(string userId);
         Task<PagedList<User>> GetUsersAsync(UserParameters userParameters, bool trackChanges);
-
+        Task<List<ClaimMetadata>> GetClaimsAsync(string token);
     }
 }

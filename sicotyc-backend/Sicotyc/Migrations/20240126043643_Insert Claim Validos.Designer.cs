@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository;
 
@@ -11,9 +12,11 @@ using Repository;
 namespace Sicotyc.Migrations
 {
     [DbContext(typeof(RepositoryContext))]
-    partial class RepositoryContextModelSnapshot : ModelSnapshot
+    [Migration("20240126043643_Insert Claim Validos")]
+    partial class InsertClaimValidos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,7 +77,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("867c1549-7132-4e8e-174a-08da70ae983a"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7568),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2268),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("71b0316a-9831-499a-b9bb-08da70ae70ed"),
                             LookupCodeName = "Por Eje",
@@ -84,7 +87,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("7e603067-a1ed-4b52-174b-08da70ae983a"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7574),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2274),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("71b0316a-9831-499a-b9bb-08da70ae70ed"),
                             LookupCodeName = "Por Eje2",
@@ -94,7 +97,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("1a011e51-2471-4ccd-174c-08da70ae983a"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7576),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2277),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("71b0316a-9831-499a-b9bb-08da70ae70ed"),
                             LookupCodeName = "Por Eje3",
@@ -104,7 +107,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("23078793-cd0a-4718-2aa4-08da71da4714"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7579),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2279),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("71b0316a-9831-499a-b9bb-08da70ae70ed"),
                             LookupCodeName = "Por Eje4",
@@ -114,7 +117,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("47b84a27-c75a-44d3-174d-08da70ae983a"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7581),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2282),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("71b0316a-9831-499a-b9bb-08da70ae70ed"),
                             LookupCodeName = "Por Eje5",
@@ -124,7 +127,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("2d253e01-afa1-4a59-bc6a-26526f0d8498"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7583),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2285),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
                             LookupCodeName = "Documento Nacional de Identidad",
@@ -134,7 +137,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("8dc0180a-2ffc-4807-803a-37aab6ecaab2"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7590),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2287),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
                             LookupCodeName = "Carnet de Extranjería",
@@ -144,7 +147,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("de0cc597-ad66-4497-acab-33617eb077bd"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7592),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2289),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
                             LookupCodeName = "Pasaporte",
@@ -154,7 +157,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("792f255c-2b8b-42e6-9968-2855373e5c86"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7594),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2291),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
                             LookupCodeName = "Partida de Nacimiento",
@@ -164,7 +167,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("b2a7d680-b5dc-41d1-9792-695602fc2954"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7597),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2293),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
                             LookupCodeName = "Carnet de FFAA",
@@ -174,7 +177,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("fe8b2536-5a20-4680-8dfe-526000df87e1"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7599),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2296),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
                             LookupCodeName = "Pasaporte Diplomatico",
@@ -184,7 +187,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("eaf628ee-9413-472e-a5b7-3c9d45f10cf0"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7601),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2298),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("e4d10bc8-a160-4a9d-bc87-c94cf849e14c"),
                             LookupCodeName = "Empresa de Transporte",
@@ -194,7 +197,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("58250d62-975a-4883-81f7-946c91cf2dec"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7603),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2332),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("e4d10bc8-a160-4a9d-bc87-c94cf849e14c"),
                             LookupCodeName = "Otros",
@@ -204,7 +207,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("6963984f-c5e0-4ed9-9647-46ac7054e344"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7605),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2335),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
                             LookupCodeName = "IMPORTACION",
@@ -214,7 +217,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("e83581fc-e05c-4c80-b5c2-e381fd7765d7"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7638),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2337),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
                             LookupCodeName = "EXPORTACION",
@@ -224,7 +227,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("5f38d3fd-f34e-45eb-aebf-512f5ebd94ee"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7641),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2339),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
                             LookupCodeName = "CARGA SUELTA",
@@ -234,7 +237,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("fdc11a23-1dc7-4160-bb9d-019579c56e46"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7643),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2341),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
                             LookupCodeName = "DEVOLUCIÓN DE VACÍO",
@@ -244,7 +247,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("e5c70df3-cf54-477f-881d-7d142f0b51aa"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7646),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2343),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
                             LookupCodeName = "TRACCIÓN",
@@ -254,7 +257,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("8bd83659-b611-488d-aaac-e5d418bac06c"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7648),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2346),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
                             LookupCodeName = "CAMA BAJA",
@@ -264,7 +267,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("752ce625-da67-4842-b19d-18c5572dbbce"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7650),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2348),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
                             LookupCodeName = "USERNAME",
@@ -274,7 +277,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("37a294bb-d8e2-4655-80a8-a2fe719766d4"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7653),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2350),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
                             LookupCodeName = "FIRSTNAME",
@@ -284,7 +287,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("e129c250-de59-45d3-8794-58e073ff8064"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7655),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2352),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
                             LookupCodeName = "LASTNAME",
@@ -294,7 +297,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("6b1b516f-9073-4657-8a4c-9cb7ebe8ea25"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7659),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2354),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
                             LookupCodeName = "EMAIL",
@@ -304,7 +307,7 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("1aec098a-859a-4586-80b6-b6f4beb848fb"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7661),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2357),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
                             LookupCodeName = "ID",
@@ -314,32 +317,12 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("50bd3490-2377-4945-9229-f018f6b07bf8"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7664),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(2359),
                             CreatedBy = "SYSTEM",
                             LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
                             LookupCodeName = "PHONENUMBER",
                             LookupCodeOrder = 6,
                             LookupCodeValue = "PhoneNumber"
-                        },
-                        new
-                        {
-                            Id = new Guid("f7ab3cf1-afe9-4b2b-977f-953d9f3b9275"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7666),
-                            CreatedBy = "SYSTEM",
-                            LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
-                            LookupCodeName = "ROLE",
-                            LookupCodeOrder = 7,
-                            LookupCodeValue = "Role"
-                        },
-                        new
-                        {
-                            Id = new Guid("8e009c6d-5920-4135-8a26-49ec04c6e7d5"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7668),
-                            CreatedBy = "SYSTEM",
-                            LookupCodeGroupId = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
-                            LookupCodeName = "IMG",
-                            LookupCodeOrder = 7,
-                            LookupCodeValue = "Img"
                         });
                 });
 
@@ -385,35 +368,35 @@ namespace Sicotyc.Migrations
                         new
                         {
                             Id = new Guid("71b0316a-9831-499a-b9bb-08da70ae70ed"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7253),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(1944),
                             CreatedBy = "SYSTEM",
                             Name = "TIPO DE PAGO PEAJE"
                         },
                         new
                         {
                             Id = new Guid("86d227dc-e0ca-4a78-85f4-83a6eb30cbc7"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7269),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(1961),
                             CreatedBy = "SYSTEM",
                             Name = "TIPO DE DOC. IDENTIDAD"
                         },
                         new
                         {
                             Id = new Guid("e4d10bc8-a160-4a9d-bc87-c94cf849e14c"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7272),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(1963),
                             CreatedBy = "SYSTEM",
                             Name = "TIPO DE EMPRESA"
                         },
                         new
                         {
                             Id = new Guid("c6ed82d5-4a24-464b-bebd-f33c0b7f7d80"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7273),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(1965),
                             CreatedBy = "SYSTEM",
                             Name = "TIPO DE SERVICIO"
                         },
                         new
                         {
                             Id = new Guid("cda56e87-1b44-4625-9f19-ac7eb282a9b7"),
-                            CreateDtm = new DateTime(2024, 2, 7, 16, 19, 39, 615, DateTimeKind.Utc).AddTicks(7280),
+                            CreateDtm = new DateTime(2024, 1, 26, 4, 36, 43, 330, DateTimeKind.Utc).AddTicks(1966),
                             CreatedBy = "SYSTEM",
                             Name = "CLAIMS PERMITIDOS"
                         });
@@ -522,19 +505,19 @@ namespace Sicotyc.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "c370de86-d7f7-47be-bf5e-77bc3c416c93",
+                            Id = "9785127f-682e-4284-b173-1796d3a1e619",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         },
                         new
                         {
-                            Id = "6d8172c3-09d4-45da-87f9-c0e7329ed482",
+                            Id = "c8aad812-5b2e-4f8c-9287-9749c269de6e",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         },
                         new
                         {
-                            Id = "702e7f29-f3dc-447d-8352-6012bd645926",
+                            Id = "3d2cf2f6-b070-4918-8fbb-43c7831f956e",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         });

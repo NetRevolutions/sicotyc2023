@@ -10,4 +10,8 @@ export class User {
         public roles?: string[],
         public id?: string,
     ) {}
+
+    printUser() {
+        console.log(this.firstName + ' ' + this.lastName);
+    }
 }

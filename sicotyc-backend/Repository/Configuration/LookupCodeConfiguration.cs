@@ -1,11 +1,6 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repository.Configuration
 {
@@ -188,6 +183,79 @@ namespace Repository.Configuration
                     LookupCodeName = "CAMA BAJA",
                     LookupCodeOrder = 6,
                     LookupCodeGroupId = new Guid("C6ED82D5-4A24-464B-BEBD-F33C0B7F7D80"),
+                    CreatedBy = "SYSTEM"
+                },
+                // CLAIMS PERMITIDOS
+                new LookupCode
+                { 
+                    Id = new Guid("752CE625-DA67-4842-B19D-18C5572DBBCE"),
+                    LookupCodeValue = "UserName",
+                    LookupCodeName = "USERNAME",
+                    LookupCodeOrder = 1,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("37A294BB-D8E2-4655-80A8-A2FE719766D4"),
+                    LookupCodeValue = "FirstName",
+                    LookupCodeName = "FIRSTNAME",
+                    LookupCodeOrder = 2,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("E129C250-DE59-45D3-8794-58E073FF8064"),
+                    LookupCodeValue = "LastName",
+                    LookupCodeName = "LASTNAME",
+                    LookupCodeOrder = 3,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("6B1B516F-9073-4657-8A4C-9CB7EBE8EA25"),
+                    LookupCodeValue = "Email",
+                    LookupCodeName = "EMAIL",
+                    LookupCodeOrder = 4,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("1AEC098A-859A-4586-80B6-B6F4BEB848FB"),
+                    LookupCodeValue = "Id",
+                    LookupCodeName = "ID",
+                    LookupCodeOrder = 5,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("50BD3490-2377-4945-9229-F018F6B07BF8"),
+                    LookupCodeValue = "PhoneNumber",
+                    LookupCodeName = "PHONENUMBER",
+                    LookupCodeOrder = 6,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("F7AB3CF1-AFE9-4B2B-977F-953D9F3B9275"),
+                    LookupCodeValue = "Role",
+                    LookupCodeName = "ROLE",
+                    LookupCodeOrder = 7,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCode
+                {
+                    Id = new Guid("8E009C6D-5920-4135-8A26-49EC04C6E7D5"),
+                    LookupCodeValue = "Img",
+                    LookupCodeName = "IMG",
+                    LookupCodeOrder = 8,
+                    LookupCodeGroupId = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
                     CreatedBy = "SYSTEM"
                 }
             );

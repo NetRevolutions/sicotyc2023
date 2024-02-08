@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TokenService } from 'src/app/services/token.service';
 import { UserService } from 'src/app/services/user.service';
 import Swal from 'sweetalert2';
 
@@ -21,8 +20,7 @@ export class LoginComponent implements OnInit{
   });
   
   constructor( private router: Router,
-                private userService: UserService,
-                private tokenService: TokenService ) {}
+                private userService: UserService) {}
   
   ngOnInit(): void {
   
@@ -40,7 +38,20 @@ export class LoginComponent implements OnInit{
         } else {
           localStorage.removeItem('username');
         }
-        //console.log(this.tokenService.getClaims());
+
+        //console.log(this.userService.getClaims());
+        this.userService.getClaims()
+        .subscribe((result: any) => {
+          console.log(result.claims); 
+          // Seteamos los valores en el local storage
+          if (result.claims != null) {
+            localStorage.setItem('claims', JSON.stringify(result.claims));
+          };          
+        })
+        
+        
+        //console.log(this.userService.getClaims());
+        //Navegamos al Dashboard
         this.router.navigateByUrl('/');
       },
       error: (err) => {

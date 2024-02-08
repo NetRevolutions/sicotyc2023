@@ -1,6 +1,10 @@
 import { Routes, RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 
+// Guards
+import { AuthGuard } from '../guards/auth.guard';
+
+// Components
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { Grafica1Component } from './dashboard/grafica1/grafica1.component';
 import { PagesComponent } from './pages.component';
@@ -14,11 +18,13 @@ import { AccountSettingsComponent } from './account-settings/account-settings.co
 import { PromesasComponent } from './promesas/promesas.component';
 import { RxjsComponent } from './rxjs/rxjs.component';
 
+
 const routes: Routes = [
     { 
         // Rutas Autenticadas
         path:'dashboard', 
         component: PagesComponent,
+        canActivate: [ AuthGuard ],
         children: [
             { path: '', component: DashboardComponent, data: {title: 'Dashboard' } },
             { path: 'progress', component: ProgressComponent, data: {title: 'Progress Bar' } },

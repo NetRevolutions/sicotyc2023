@@ -1,11 +1,8 @@
 ﻿using AutoMapper;
 using Contracts;
+using Entities.Models;
+using Microsoft.AspNetCore.Identity;
 using Service.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Service
 {
@@ -13,15 +10,19 @@ namespace Service
     {
         private readonly Lazy<ILookupCodeGroupService> _lookupCodeGroupService;
         private readonly Lazy<ILookupCodeService> _lookupCodeService;
+        //private readonly Lazy<IUploadFileService> _uploadFileService;
 
-        public ServiceManager(IRepositoryManager repositoryManager, ILoggerManager logger, IMapper mapper)
+        public ServiceManager(IRepositoryManager repositoryManager, ILoggerManager logger, IMapper mapper, UserManager<User> userManager, IAuthenticationManager authManager)
         {
             _lookupCodeGroupService = new Lazy<ILookupCodeGroupService>(() => new LookupCodeGroupService(repositoryManager, logger, mapper));
             _lookupCodeService = new Lazy<ILookupCodeService>(() => new LookupCodeService(repositoryManager,logger, mapper));
+            //_uploadFileService = new Lazy<IUploadFileService>(() => new UploadFileService(logger, mapper, userManager, authManager, repositoryManager));
         }
 
         public ILookupCodeGroupService LookupCodeGroupService => _lookupCodeGroupService.Value;
 
         public ILookupCodeService LookupCodeService => _lookupCodeService.Value;
+
+        //public IUploadFileService UploadFileService =>_uploadFileService.Value;
     }
 }

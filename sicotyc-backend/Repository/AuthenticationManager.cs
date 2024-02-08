@@ -3,12 +3,12 @@ using Entities.DataTransferObjects;
 using Entities.Models;
 using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 
 namespace Repository
 {
@@ -16,6 +16,7 @@ namespace Repository
     {
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
+        
 
         private User? _user;
 
@@ -23,7 +24,8 @@ namespace Repository
             : base(repositoryContext)
         {
             _userManager = userManager;
-            _configuration = configuration;
+            _configuration = configuration;            
+
         }
         public async Task<bool> ValidateUser(UserForAuthenticationDto userForAuth)
         {
@@ -32,13 +34,35 @@ namespace Repository
             return _user != null && await _userManager.CheckPasswordAsync(_user, userForAuth.Password);
         }
 
-        public async Task<string> CreateToken()
+        public async Task<string> CreateTokenAsync()
         {
             var signingCredentials = GetSigningCredentials();
             var claims = await GetClaims();
             var tokenOptions = GenerateTokenOptions(signingCredentials, claims);
 
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+        }
+
+        public async Task<RenewToken> RenewTokenAsync(string userId)
+        {
+            _user = await _userManager.FindByIdAsync(userId);                       
+
+            // Obtener los roles por usuario
+            var userRolesDB = await _userManager.GetRolesAsync(_user);
+            List<string> roles = new List<string>();
+            foreach (var role in userRolesDB)
+            {
+                roles.Add(role.ToString());
+            }
+
+            var token = await CreateTokenAsync();
+
+            return new RenewToken { 
+                Token = token,
+                User = _user,
+                Roles = roles
+            };
+
         }
 
         public async Task<PagedList<User>> GetUsersAsync(UserParameters userParameters, bool trackChanges)
@@ -89,6 +113,7 @@ namespace Repository
                 new Claim("LastName", _user?.LastName != null ? _user.LastName : string.Empty),
                 new Claim("Email", _user?.Email != null ? _user.Email : string.Empty),
                 new Claim("Id", _user?.Id != null ? _user.Id : string.Empty),
+                new Claim("Img", _user?.Img != null ? _user.Img : string.Empty),
                 new Claim("PhoneNumber", _user?.PhoneNumber != null ? _user.PhoneNumber : string.Empty)
             };
 
@@ -117,5 +142,40 @@ namespace Repository
             return tokenOptions;
         }
 
+        public async Task<List<ClaimMetadata>> GetClaimsAsync(string token)
+        {            
+            List<ClaimMetadata> claimList = new List<ClaimMetadata>();
+            try
+            {
+                // Configurar la validación del token
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+
+                // Decodificar el token
+                var claimsPrincipal = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+
+                if (claimsPrincipal.IsValid)
+                {
+                    var claims = claimsPrincipal.Claims;
+                    foreach ( var claim in claims)
+                    {
+                        //claimList.Add(new ClaimMetadata(claim.Key.ToString(), JsonExtensions.SerializeToJson(claim.Value)));
+                        claimList.Add(new ClaimMetadata { Type = claim.Key, Value = claim.Value.ToString() /*!= null ? JsonExtensions.SerializeToJson(claim.Value) : null*/ });
+                    }
+                }
+                return claimList;               
+                               
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }        
     }
 }

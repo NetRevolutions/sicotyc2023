@@ -1,11 +1,6 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Repository.Configuration
 {
@@ -37,6 +32,12 @@ namespace Repository.Configuration
                 {
                     Id = new Guid("C6ED82D5-4A24-464B-BEBD-F33C0B7F7D80"),
                     Name = "TIPO DE SERVICIO",
+                    CreatedBy = "SYSTEM"
+                },
+                new LookupCodeGroup
+                { 
+                    Id = new Guid("CDA56E87-1B44-4625-9F19-AC7EB282A9B7"),
+                    Name = "CLAIMS PERMITIDOS",
                     CreatedBy = "SYSTEM"
                 }
             );

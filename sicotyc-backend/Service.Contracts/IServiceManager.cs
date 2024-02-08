@@ -10,5 +10,6 @@ namespace Service.Contracts
     {
         ILookupCodeGroupService LookupCodeGroupService { get; }
         ILookupCodeService LookupCodeService { get; }
+        //IUploadFileService UploadFileService { get; }
     }
 }
