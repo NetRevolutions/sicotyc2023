@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Contracts;
+using Entities.DataTransferObjects;
 using Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Service.Contracts;
@@ -34,15 +35,12 @@ namespace Service
                     {
                         _logger.LogError($"Usuario con id {id} no existe en la BD");
                         return false;
-                    }
+                    }                    
 
                     string oldPath = Path.Combine(rootPath, "Uploads", type!, userDB.Img == null ? string.Empty : userDB.Img);
-                    if (File.Exists(oldPath))
-                    {
-                        // Borrar la imagen anterior
-                        File.Delete(oldPath);
-                    }
 
+                    this.DeleteImage(oldPath);                  
+                    
                     userDB.Img = fileName;
                     await _userManager.UpdateAsync(userDB);
                     return true;
@@ -54,6 +52,14 @@ namespace Service
 
                 default: 
                     return false;
+            }
+        }
+
+        private void DeleteImage(string oldPath) {            
+            if (File.Exists(oldPath))
+            {
+                // Borrar la imagen anterior
+                File.Delete(oldPath);
             }
         }
     }

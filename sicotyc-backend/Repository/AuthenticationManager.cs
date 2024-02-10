@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -16,7 +17,6 @@ namespace Repository
     {
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
-        
 
         private User? _user;
 
@@ -93,9 +93,74 @@ namespace Repository
             return PagedList<User>
                 .ToPagedList(users, userParameters.PageNumber, userParameters.PageSize);
                 
+        }        
+
+        public async Task<List<ClaimMetadata>> GetClaimsAsync(string token)
+        {            
+            List<ClaimMetadata> claimList = new List<ClaimMetadata>();
+            try
+            {
+                // Decodificar el token
+                var claimsPrincipal = await getTokenValidationResult(token); 
+
+                if (claimsPrincipal.IsValid)
+                {
+                    var claims = claimsPrincipal.Claims;
+                    foreach ( var claim in claims)
+                    {                        
+                        claimList.Add(new ClaimMetadata { Type = claim.Key, Value = claim.Value.ToString() });
+                    }                    
+                }
+
+                return claimList;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
-        private SigningCredentials GetSigningCredentials() 
+        public async Task<ResultProcess> ValidateToken(string token)
+        {
+            ResultProcess resultProcess = new ResultProcess();
+            resultProcess.Success = true;
+            resultProcess.Status = HttpStatusCode.OK;
+
+            if (token == null)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Token no valido";
+                resultProcess.Status = HttpStatusCode.Unauthorized;
+                return resultProcess;
+            }
+
+            List<ClaimMetadata> claims = await GetClaimsAsync(token);
+            if (claims == null || claims.Count == 0)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Token no valido";
+                resultProcess.Status = HttpStatusCode.Unauthorized;
+                return resultProcess;
+            }            
+
+
+            var tokenValidationResult = await getTokenValidationResult(token);
+
+            var expirationDate = tokenValidationResult.SecurityToken.ValidTo.ToUniversalTime();
+            if (expirationDate < DateTime.UtcNow)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Token expirado";
+                resultProcess.Status = HttpStatusCode.Unauthorized;
+                return resultProcess;
+            }
+
+            return resultProcess;
+        }
+
+        #region Private Methods
+
+        private SigningCredentials GetSigningCredentials()
         {
             var key = Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"));
             var secret = new SymmetricSecurityKey(key);
@@ -142,40 +207,23 @@ namespace Repository
             return tokenOptions;
         }
 
-        public async Task<List<ClaimMetadata>> GetClaimsAsync(string token)
-        {            
-            List<ClaimMetadata> claimList = new List<ClaimMetadata>();
-            try
+        private async Task<TokenValidationResult> getTokenValidationResult(string token)
+        {
+            // Configurar la validación del token
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
             {
-                // Configurar la validación del token
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var validationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SECRET"))),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
 
-                // Decodificar el token
-                var claimsPrincipal = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+            // Decodificar el token
+            return await tokenHandler.ValidateTokenAsync(token, validationParameters);
+        }
 
-                if (claimsPrincipal.IsValid)
-                {
-                    var claims = claimsPrincipal.Claims;
-                    foreach ( var claim in claims)
-                    {
-                        //claimList.Add(new ClaimMetadata(claim.Key.ToString(), JsonExtensions.SerializeToJson(claim.Value)));
-                        claimList.Add(new ClaimMetadata { Type = claim.Key, Value = claim.Value.ToString() /*!= null ? JsonExtensions.SerializeToJson(claim.Value) : null*/ });
-                    }
-                }
-                return claimList;               
-                               
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }        
+        #endregion Private Methods
+
     }
 }

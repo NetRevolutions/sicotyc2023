@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Sicotyc.ActionFilters;
+using System.Net;
 
 namespace Sicotyc.Controllers
 {
@@ -166,22 +167,17 @@ namespace Sicotyc.Controllers
         public async Task<IActionResult> ValidateJWT() {
             // Acceder al encabezado "x-token" desde HttpContext
             if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
-            {
-                // Puedes trabajar con el valor del encabezado aquí
-                string token = tokenHeaderValue.ToString();
-                if (token == null) {
-                    return BadRequest("No hay token en la peticion");
-                }
+            {    
+                
+                ResultProcess validToken = await _authManager.ValidateToken(tokenHeaderValue);
 
-                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
-                if (claims.Count() > 0)
-                {                    
-                    return Ok(new ValidateJWT { 
-                        Uid = claims.Find(x => x.Type == "Id")?.Value,
-                        Roles = claims.FindAll(x => x.Type == "Role").Select(x => x.Value).ToList()
-                    });
+                if (validToken.Status == HttpStatusCode.OK)
+                {
+                    return Ok("Token valido");
                 }
-                return BadRequest("Token no valido");                
+                else {
+                    return Unauthorized(validToken.Message);
+                }                                
             }
 
             return BadRequest("Token no valido");

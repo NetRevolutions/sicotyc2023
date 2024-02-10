@@ -9,6 +9,7 @@ namespace Contracts
         Task<bool> ValidateUser(UserForAuthenticationDto userForAuth);
         Task<string> CreateTokenAsync();
         Task<RenewToken> RenewTokenAsync(string userId);
+        Task<ResultProcess> ValidateToken(string token);
         Task<PagedList<User>> GetUsersAsync(UserParameters userParameters, bool trackChanges);
         Task<List<ClaimMetadata>> GetClaimsAsync(string token);
     }

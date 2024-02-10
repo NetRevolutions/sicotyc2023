@@ -15,13 +15,16 @@ namespace Sicotyc.Controllers
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         private readonly IUploadFileService _uploadFileService;
+        private readonly IAuthenticationManager _authManager;
 
-        public UploadController(IWebHostEnvironment hostingEnvironment, IUploadFileService uploadFileService, ILoggerManager logger, IMapper mapper)
+        public UploadController(IWebHostEnvironment hostingEnvironment, IUploadFileService uploadFileService, ILoggerManager logger, IMapper mapper, IAuthenticationManager authManager)
         {
             _hostingEnvironment = hostingEnvironment;
             _uploadFileService = uploadFileService;
             _logger = logger;
             _mapper = mapper;
+            _authManager = authManager;
+
         }
 
         [HttpPut("{type}/{id:guid}")]
@@ -32,6 +35,12 @@ namespace Sicotyc.Controllers
             // Acceder al encabezado "x-token" desde HttpContext
             if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success) {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+                
                 if (!validFolders.Contains(type?.ToUpper()))
                 {
                     return BadRequest($"No existe una capeta para este tipo de archivo ({type}) a subir");
@@ -76,7 +85,7 @@ namespace Sicotyc.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Hubo un error al tratar de subir la imagen de tipo {type}, aca el detalle: ${ex.Message}");
+                    _logger.LogError($"Hubo un error al tratar de subir la imagen de tipo {type}, aca el detalle: {ex.Message}");
                     return BadRequest("Hubo un error al tratar de subir la imagen");
                 }                
             }
