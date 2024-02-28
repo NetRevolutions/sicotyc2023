@@ -8,9 +8,12 @@
         <nav class="sidebar-nav">
             <ul id="sidebarnav">
                 <li class="user-profile">
-                    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false"><img src="./assets/images/users/profile.png" alt="user" /><span class="hide-menu">Steave Jobs </span></a>
+                    <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
+                        <img [src]="user?.imageUrl" alt="user" />
+                        <span class="hide-menu">{{ user?.firstName + ' ' + user?.lastName | slice:0:15 }}{{ (user!.firstName.length + user!.lastName.length + 1) > 15 ? '...' : '' }}</span>
+                    </a>
                     <ul aria-expanded="false" class="collapse">
-                        <li><a href="javascript:void()">My Profile </a></li>
+                        <li><a routerLinkActive="active" routerLink="/dashboard/profile">Mi Perfil </a></li>
                         <li><a href="javascript:void()">My Balance</a></li>
                         <li><a href="javascript:void()">Inbox</a></li>
                         <li><a routerLink="account-settings">Account Setting</a></li>
@@ -22,7 +25,7 @@
 
                 <li *ngFor="let item of menuItems"> 
                     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
-                        <i class="mdi mdi-gauge"></i>
+                        <i [class]="item.icon"></i>
                         <span class="hide-menu">
                             {{ item.title }}
                             <span class="label label-rouded label-themecolor pull-right">

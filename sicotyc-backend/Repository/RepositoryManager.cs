@@ -7,10 +7,7 @@ namespace Repository
 {
     public sealed class RepositoryManager : IRepositoryManager
     {
-        private readonly RepositoryContext _repositoryContext;
-        //private readonly UserManager<User> _userManager;
-        //private readonly IConfiguration _configuration;
-        //private User _user;
+        private readonly RepositoryContext _repositoryContext;        
 
         private readonly Lazy<ILookupCodeGroupRepository> _lookupCodeGroupRepository;
         private readonly Lazy<ILookupCodeRepository> _lookupCodeRepository;        
@@ -19,8 +16,6 @@ namespace Repository
         public RepositoryManager(UserManager<User> userManager, IConfiguration configuration, RepositoryContext repositoryContext)
         {
             _repositoryContext = repositoryContext;
-            //_userManager = userManager;
-            //_configuration = configuration;
 
             _lookupCodeGroupRepository = new Lazy<ILookupCodeGroupRepository>(() => new LookupCodeGroupRepository(repositoryContext));
             _lookupCodeRepository = new Lazy<ILookupCodeRepository>(() => new LookupCodeRepository(repositoryContext));

@@ -20,10 +20,31 @@ const base_url = environment.base_url;
 })
 export class UserService {
 
-  public user!: User;
-
+  public user?: User;
+  
   constructor(private http: HttpClient,
               private router: Router) { }
+
+  get token(): string {
+
+    return localStorage.getItem('token') || '';
+  };
+
+  get uid(): string {
+    return this.user?.id || '';
+  };
+
+  get roles(): string[] {
+    return this.user?.roles || [];
+  }
+
+  get headers() {
+    return {
+      headers: {
+        'x-token': this.token
+      }
+    }
+  }
 
   createUser( formData: RegisterForm) {    
     return this.http.post(`${base_url}/authentication`, formData);    
@@ -54,23 +75,73 @@ export class UserService {
     return JSON.parse(claims);
   }
 
-  validateToken(): Observable<boolean> {
-    const token = localStorage.getItem('token') || '';
-    return this.http.get(`${base_url}/authentication/renewToken`, {
-      headers: {
-        'x-token': token
-      }
-    }).pipe(
-      tap( (resp: any) => {
-        const { firstName, lastName, userName, email, img, id } = resp.user;
-        this.user = new User(firstName, lastName, userName, email, '', img, resp.roles, id);
+  validateToken(): Observable<boolean> {    
+    return this.http.get(`${base_url}/authentication/renewToken`, this.headers)
+    .pipe(
+      map( (resp: any) => {
+        const { firstName, lastName, userName, email, phoneNumber, img = '', id } = resp.user;
+        this.user = new User(firstName, lastName, userName, email, '', img, phoneNumber, resp.roles, id);
 
         localStorage.setItem('token', resp.token); // Seteamos el token renovado
-        
-      }),
-      map( resp => true),
+        return true;
+      }),     
       catchError(error => of(false)) // Con el of retorno un Observable de tipo boolean (false)
     );
   };
 
+  updateProfile( data: {id: string, 
+                        firstName: string,
+                        lastName: string,
+                        userName: string,// No actualizar
+                        email: string,  
+                        phoneNumber: string,
+                        roles: Array<string>
+                      }) {
+    data.id = this.uid;
+    data.firstName = this.user?.firstName || '';
+    data.lastName = this.user?.lastName || '';
+    //data.userName = this.user?.userName || ''; // No actualizar
+    //data.email = this.user?.email || '';
+    data.phoneNumber = this.user?.phoneNumber || '';
+    data.roles = this.user?.roles || []; // No Actualizar
+
+    return this.http.put(`${base_url}/authentication/user/${this.uid}`, data, this.headers)
+  };
+
+  loadUsers( from: number = 0) {
+    const url = `${base_url}/authentication/users?pageNumber=${from}`;
+    return this.http.get(url, this.headers)
+      .pipe(
+        map((resp: any) => {
+          const users = resp.data.map(
+            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id));
+          
+          return { 
+            data: users, 
+            pagination: resp.pagination
+          };
+        })
+      )
+  };
+
+  findUsersByIdCollection(ids: string[]) {
+    const url = `${base_url}/authentication/users/collection(${ids.join(',')})`;
+    return this.http.get(url, this.headers)
+      .pipe(
+        map((resp: any) => {
+          const users = resp.data.map(
+            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id));
+          
+          return {
+            data: users
+          };
+        })
+      )
+  };
+
+  deleteUser(user: User) {
+    // console.log('User eliminado');
+    const url = `${base_url}/authentication/user/${user.id}`;
+    return this.http.delete(url, this.headers)
+  }
 }

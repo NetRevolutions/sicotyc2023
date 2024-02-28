@@ -16,7 +16,7 @@ namespace Repository
     public class AuthenticationManager : RepositoryBase<User>, IAuthenticationManager
     {
         private readonly UserManager<User> _userManager;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;       
 
         private User? _user;
 
@@ -24,8 +24,7 @@ namespace Repository
             : base(repositoryContext)
         {
             _userManager = userManager;
-            _configuration = configuration;            
-
+            _configuration = configuration;  
         }
         public async Task<bool> ValidateUser(UserForAuthenticationDto userForAuth)
         {
@@ -65,6 +64,20 @@ namespace Repository
 
         }
 
+        public async Task<List<User>> GetUsersByIdCollectionAsync(IEnumerable<string> ids, bool trackChanges)
+        {
+            var users = new List<User>();
+            if (ids.Count() > 0)
+            {
+                users = await FindAll(trackChanges)
+                    .Where(u => ids.Contains(u.Id))
+                    .OrderBy(o => o.FirstName)
+                    .ToListAsync();
+            }
+
+            return users;
+        }
+
         public async Task<PagedList<User>> GetUsersAsync(UserParameters userParameters, bool trackChanges)
         {
             var users = new List<User>();
@@ -88,8 +101,10 @@ namespace Repository
                     .OrderBy(o => o.FirstName)
                     .ToListAsync();
             }
-                
-               
+
+            // TODO: Pendiente traer los roles de cada usuario
+
+
             return PagedList<User>
                 .ToPagedList(users, userParameters.PageNumber, userParameters.PageSize);
                 
@@ -156,7 +171,7 @@ namespace Repository
             }
 
             return resultProcess;
-        }
+        }        
 
         #region Private Methods
 
@@ -221,7 +236,7 @@ namespace Repository
 
             // Decodificar el token
             return await tokenHandler.ValidateTokenAsync(token, validationParameters);
-        }
+        }        
 
         #endregion Private Methods
 

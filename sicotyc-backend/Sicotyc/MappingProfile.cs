@@ -23,6 +23,9 @@ namespace Sicotyc
             CreateMap<UserForRegistrationDto, User>();
             CreateMap<UserForUpdateDto, User>();
             CreateMap<User, UserDto>();
+            CreateMap<User, SearchResultDto>()
+                    .ForMember(d => d.Name, opt => opt.MapFrom(o => o.FirstName + " " + o.LastName));
+
         }
     }
 }

@@ -4,10 +4,12 @@ using Entities.DataTransferObjects;
 using Entities.Enum;
 using Entities.Models;
 using Entities.RequestFeatures;
+using FluentEmail.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using Service.Contracts;
 using Sicotyc.ActionFilters;
+using Sicotyc.ModelBinders;
 using System.Net;
 
 namespace Sicotyc.Controllers
@@ -21,15 +23,20 @@ namespace Sicotyc.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IAuthenticationManager _authManager;
         private readonly IRepositoryManager _respository;
+        private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IUploadFileService _uploadService;
         public AuthenticationController(ILoggerManager logger, IMapper mapper,
-            UserManager<User> userManager, IAuthenticationManager authManager, IRepositoryManager repository)
+            UserManager<User> userManager, IAuthenticationManager authManager, 
+            IRepositoryManager repository, IWebHostEnvironment hostingEnvironment,
+            IUploadFileService uploadFileService)
         {
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
             _authManager = authManager;
             _respository = repository;
-
+            _hostingEnvironment = hostingEnvironment;
+            _uploadService = uploadFileService;
         }
 
         [HttpPost("login")]
@@ -256,25 +263,108 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> GetUsers([FromQuery] UserParameters userParameters)
         {
-            var usersFromDb = await _respository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
-
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(usersFromDb.MetaData));
-
-            var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);
-
-            foreach (var userDto in usersDto)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                userDto.Roles = _userManager.GetRolesAsync(new User
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
                 {
-                    Id = userDto.Id,
-                    FirstName = userDto.FirstName,
-                    LastName = userDto.LastName,
-                    Email = userDto.Email,
-                    UserName = userDto.UserName
-                }).Result.ToList();
-            }
+                    return Unauthorized(resultValidateToken.Message);
+                }
 
-            return Ok(usersDto);
+                try
+                {
+                    var usersFromDb = await _respository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
+
+                    //Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(usersFromDb.MetaData));
+
+                    var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);
+
+                    foreach (var userDto in usersDto)
+                    {
+                        userDto.Roles = _userManager.GetRolesAsync(new User
+                        {
+                            Id = userDto.Id,
+                            FirstName = userDto.FirstName,
+                            LastName = userDto.LastName,
+                            Email = userDto.Email,
+                            UserName = userDto.UserName
+                        }).Result.ToList();
+                    }
+
+                    return Ok(new
+                    {
+                        data = usersDto,
+                        pagination = usersFromDb.MetaData
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuarios, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error al tratar de realizar la busqueda de usuarios");
+                }
+            }
+            else
+            {
+                return BadRequest("No existe token para realizar esta accion");
+            }            
+        }
+
+        // Read Collection
+        [HttpGet("users/collection({ids})")]
+        public async Task<IActionResult> GetUsersByIdCollection(
+            [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids) {
+
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue)) 
+            {
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+
+                try
+                {
+                    if (ids == null)
+                    {
+                        _logger.LogError("Parametro ids es nulo");
+                        return BadRequest("Parametro ids es nulo");
+                    }
+
+                    var userEntities = await _authManager.GetUsersByIdCollectionAsync(ids, trackChanges: false);
+                    if (ids.Count() != userEntities.Count())
+                    {
+                        _logger.LogError("Algunos de los Ids de la coleccion no son validos");
+                        return NotFound();
+                    }
+
+                    var usersToReturn = _mapper.Map<IEnumerable<UserDto>>(userEntities);                    
+
+                    usersToReturn.ForEach(user =>
+                    {
+                        var userTemp = userEntities.Find(x =>  x.Id == user.Id);
+                        if (userTemp != null)
+                        {
+                            user.Roles = _userManager.GetRolesAsync(userTemp).Result;
+                        }
+                    });
+                    
+
+                    return Ok(new { data = usersToReturn });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuarios por coleccion, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error al tratar de realizar la busqueda de usuarios por coleccion");
+                }
+            }
+            else
+            {
+                return BadRequest("No existe token para realizar esta accion");
+            }            
         }
 
         // Read
@@ -282,71 +372,118 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> GetUser(Guid id)
         {
-            var userResult = await _userManager.FindByIdAsync(id.ToString());
-            if (userResult == null)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                _logger.LogError($"Usuario con id: {id} no existe");
-                return NotFound();
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+
+                try
+                {
+                    var userResult = await _userManager.FindByIdAsync(id.ToString());
+                    if (userResult == null)
+                    {
+                        _logger.LogError($"Usuario con id: {id} no existe");
+                        return NotFound();
+                    }
+                    else
+                    {
+                        var userDto = _mapper.Map<UserDto>(userResult);
+                        userDto.Roles = _userManager.GetRolesAsync(new User
+                        {
+                            Id = userDto.Id,
+                            FirstName = userDto.FirstName,
+                            LastName = userDto.LastName,
+                            Email = userDto.Email,
+                            UserName = userDto.UserName
+                        }).Result.ToList();
+
+                        return Ok(userDto);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuario, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error al tratar de realizar la busqueda de usuario");
+                }
             }
             else
             {
-                var userDto = _mapper.Map<UserDto>(userResult);
-                userDto.Roles = _userManager.GetRolesAsync(new User
-                {
-                    Id = userDto.Id,
-                    FirstName = userDto.FirstName,
-                    LastName = userDto.LastName,
-                    Email = userDto.Email,
-                    UserName = userDto.UserName
-                }).Result.ToList();
-
-                return Ok(userDto);
-            }
+                return BadRequest("No existe token para realizar esta accion");
+            }            
         }
 
         // Update
         [HttpPut("user/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserForUpdateDto userDto)
-        {            
-            var userDB = _userManager.FindByIdAsync(id.ToString()).Result;
-            if (userDB == null)
+        {
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                _logger.LogError($"Usuario con id: {id} no existe");
-                return NotFound();
-            }
-            else {
-
-                //_mapper.Map(userDto, userDB); // No funciona porque no se puede excluir el Id
-
-                // Modificamos solo las propiedades necesarias
-                userDB.FirstName = userDto.FirstName;
-                userDB.LastName = userDto.LastName;
-                userDB.Email = userDto.Email;
-                userDB.UserName = userDto.UserName;
-                userDB.PhoneNumber = userDto.PhoneNumber;                
-
-                var result = await _userManager.UpdateAsync(userDB);
-                if (result.Succeeded)
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
                 {
-                    // 1.- Delete all roles
-                    var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
-                    await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
+                    return Unauthorized(resultValidateToken.Message);
+                }
 
-                    // 2.- Add the current roles
-                    var currentUserRoles = userDto.Roles;
-                    if (currentUserRoles != null)
+                try
+                {
+                    var userDB = _userManager.FindByIdAsync(id.ToString()).Result;
+                    if (userDB == null)
                     {
-                        await _userManager.AddToRolesAsync(userDB, currentUserRoles);
+                        _logger.LogError($"Usuario con id: {id} no existe");
+                        return NotFound();
                     }
-                    _logger.LogInfo($"Se actualizo los datos del usuario con el id: {id}");
-                    return Ok("Usuario actualizado satisfactoriamente");
+                    else
+                    {
+                        //_mapper.Map(userDto, userDB); // No funciona porque no se puede excluir el Id
+
+                        // Modificamos solo las propiedades necesarias
+                        userDB.FirstName = userDto.FirstName;
+                        userDB.LastName = userDto.LastName;
+                        userDB.Email = userDto.Email;
+                        userDB.UserName = userDto.UserName;
+                        userDB.PhoneNumber = userDto.PhoneNumber;
+
+                        var result = await _userManager.UpdateAsync(userDB);
+                        if (result.Succeeded)
+                        {
+                            // 1.- Delete all roles
+                            var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
+                            await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
+
+                            // 2.- Add the current roles
+                            var currentUserRoles = userDto.Roles;
+                            if (currentUserRoles != null)
+                            {
+                                await _userManager.AddToRolesAsync(userDB, currentUserRoles);
+                            }
+                            _logger.LogInfo($"Se actualizo los datos del usuario con el id: {id}");
+                            return Ok("Usuario actualizado satisfactoriamente");
+                        }
+                        else
+                        {
+                            _logger.LogError($"Hubo un error al intentar actualizar el usuario con id: {id}");
+                            return BadRequest(result.Errors);
+                        }
+                    }
                 }
-                else {
-                    _logger.LogError($"Hubo un error al intentar actualizar el usuario con id: {id}");
-                    return BadRequest(result.Errors);
-                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de actualizar al usuario con id: {id}, aca el detalle: {ex.Message}");
+                    return BadRequest($"Hubo un error al tratar de actualizar al usuario con id: {id}");
+                }                              
             }
+            else
+            {
+                return BadRequest("No hay token en la peticion");
+            }            
         }
 
         // Delete        
@@ -354,26 +491,63 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
-
-            if (user == null)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                return NotFound("Usuario no encontrado");
-            }
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
 
-            var result = await _userManager.DeleteAsync(user);
+                try
+                {
+                    var userDB = await _userManager.FindByIdAsync(id.ToString());
 
-            if (result.Succeeded)
-            {
+                    if (userDB == null)
+                    {
+                        return NotFound("Usuario no encontrado");
+                    }
 
-                _logger.LogInfo($"Usuario con el id: {id} fue eliminado exitosamente");
-                return Ok("Usuario eliminado exitosamente");
+                    // 1.- Delete all roles
+                    var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
+                    await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
+
+                    // 2.- Delete image user
+                    if (userDB.Img != null)
+                    {
+                        // Obtener la ruta fisica del directorio raiz del proyecto
+                        string rootPath = _hostingEnvironment.ContentRootPath;
+                        await this._uploadService.DeleteImageAsync("USERS", rootPath, userDB.Img);
+
+                    }
+
+                    // 3.- Delete user
+                    var result = await _userManager.DeleteAsync(userDB);
+
+                    if (result.Succeeded)
+                    {
+
+                        _logger.LogInfo($"Usuario con el id: {id} fue eliminado exitosamente");
+                        return Ok("Usuario eliminado exitosamente");
+                    }
+                    else
+                    {
+                        _logger.LogError($"Hubo un error al intentar eliminar al usuario con el id: {id}, aca el detalle: {result.Errors}");
+                        return BadRequest(result.Errors);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de eliminar al usuario con id: {id}, aca el detalle: {ex.Message}");
+                    return BadRequest($"Hubo un error al tratar de eliminar al usuario con id: {id}");
+                }
             }
             else
             {
-                _logger.LogError($"Hubo un error al intentar eliminar al usuario con el id: {id}");
-                return BadRequest(result.Errors);
-            }
+                return BadRequest("No hay token en la peticion");
+            }            
         }
 
         #endregion

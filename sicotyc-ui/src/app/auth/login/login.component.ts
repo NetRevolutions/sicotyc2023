@@ -42,7 +42,7 @@ export class LoginComponent implements OnInit{
         //console.log(this.userService.getClaims());
         this.userService.getClaims()
         .subscribe((result: any) => {
-          console.log(result.claims); 
+          //console.log(result.claims); 
           // Seteamos los valores en el local storage
           if (result.claims != null) {
             localStorage.setItem('claims', JSON.stringify(result.claims));

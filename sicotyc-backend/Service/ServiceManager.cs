@@ -10,19 +10,23 @@ namespace Service
     {
         private readonly Lazy<ILookupCodeGroupService> _lookupCodeGroupService;
         private readonly Lazy<ILookupCodeService> _lookupCodeService;
-        //private readonly Lazy<IUploadFileService> _uploadFileService;
+        private readonly Lazy<ISearchService> _searchService;
 
-        public ServiceManager(IRepositoryManager repositoryManager, ILoggerManager logger, IMapper mapper, UserManager<User> userManager, IAuthenticationManager authManager)
+        public ServiceManager(IRepositoryManager repositoryManager, 
+                                ILoggerManager logger, 
+                                IMapper mapper, 
+                                UserManager<User> userManager, 
+                                IAuthenticationManager authManager)
         {
             _lookupCodeGroupService = new Lazy<ILookupCodeGroupService>(() => new LookupCodeGroupService(repositoryManager, logger, mapper));
             _lookupCodeService = new Lazy<ILookupCodeService>(() => new LookupCodeService(repositoryManager,logger, mapper));
-            //_uploadFileService = new Lazy<IUploadFileService>(() => new UploadFileService(logger, mapper, userManager, authManager, repositoryManager));
+            _searchService = new Lazy<ISearchService>(() => new SearchService(repositoryManager, mapper));
         }
 
         public ILookupCodeGroupService LookupCodeGroupService => _lookupCodeGroupService.Value;
 
         public ILookupCodeService LookupCodeService => _lookupCodeService.Value;
 
-        //public IUploadFileService UploadFileService =>_uploadFileService.Value;
+        public ISearchService SearchService => _searchService.Value;
     }
 }

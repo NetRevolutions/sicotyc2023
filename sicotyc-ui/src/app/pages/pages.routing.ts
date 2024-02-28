@@ -4,19 +4,26 @@ import { NgModule } from '@angular/core';
 // Guards
 import { AuthGuard } from '../guards/auth.guard';
 
-// Components
+// Dashboard
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { Grafica1Component } from './dashboard/grafica1/grafica1.component';
 import { PagesComponent } from './pages.component';
 import { ProgressComponent } from './dashboard/progress/progress.component';
-import { CalculoTarifasComponent } from './operaciones/calculo-tarifas/calculo-tarifas.component';
-import { CreacionServicioComponent } from './operaciones/creacion-servicio/creacion-servicio.component';
-import { EvaluacionServicioComponent } from './operaciones/evaluacion-servicio/evaluacion-servicio.component';
-import { OperacionesComponent } from './operaciones/operaciones.component';
 import { JuegosAzarComponent } from './dashboard/juegos-azar/juegos-azar.component';
 import { AccountSettingsComponent } from './account-settings/account-settings.component';
 import { PromesasComponent } from './promesas/promesas.component';
 import { RxjsComponent } from './rxjs/rxjs.component';
+import { ProfileComponent } from './profile/profile.component';
+
+// Operaciones
+import { OperacionesComponent } from './operaciones/operaciones.component';
+import { CalculoTarifasComponent } from './operaciones/calculo-tarifas/calculo-tarifas.component';
+import { CreacionServicioComponent } from './operaciones/creacion-servicio/creacion-servicio.component';
+import { EvaluacionServicioComponent } from './operaciones/evaluacion-servicio/evaluacion-servicio.component';
+
+// Mantenimientos
+import { MaintenanceComponent } from './maintenance/maintenance.component';
+import { UsersComponent } from './maintenance/users/users.component';
 
 
 const routes: Routes = [
@@ -33,6 +40,7 @@ const routes: Routes = [
             { path: 'promesas', component: PromesasComponent, data: {title: 'Promesas' } },
             { path: 'rxjs', component: RxjsComponent, data: {title: 'rxJS' } },
             { path: 'account-settings', component: AccountSettingsComponent, data: {title: 'Account Settings' } },
+            { path: 'profile', component: ProfileComponent, data: {title: 'Perfil de Usuario' } },
         ] 
     },
     {
@@ -43,6 +51,15 @@ const routes: Routes = [
             { path: 'calculo-tarifas', component: CalculoTarifasComponent, data: {title: 'Calculo de Tarifas' } },
             { path: 'evaluacion-servicio', component: EvaluacionServicioComponent, data: {title: 'Evaluacion de Servicio' } },
             { path: 'creacion-servicio', component: CreacionServicioComponent, data: {title: 'Creacion de Servicio' } }
+        ]
+    },
+    {
+        path: 'mantenimientos',
+        component: PagesComponent,
+        canActivate: [ AuthGuard ],
+        children: [
+            { path: '', component: MaintenanceComponent, data: {title: 'Mantenimientos' } },
+            { path: 'users', component: UsersComponent, data: {title: 'Usuarios de Aplicacion'}}
         ]
     }
 ];

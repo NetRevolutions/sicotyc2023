@@ -15,16 +15,23 @@ export class SidebarService {
         { title: 'Graficas', url: '/dashboard/grafica1' },
         { title: 'Promesas', url: '/dashboard/promesas' },
         { title: 'Juegos Azar', url: '/dashboard/juegos-azar'},
-        { title: 'rxJS', url: '/dashboard/rxjs'},
+        { title: 'rxJS', url: '/dashboard/rxjs'},        
       ]
     },
     {
       title: 'Operaciones',
-      icon: 'mdi mdi-gauge',
+      icon: 'mdi mdi-memory',
       submenu: [
         { title: 'Calculo de Tarifas', url: '/operaciones/calculo-tarifas' },
         { title: 'Evaluacion de Servicio', url: '/operaciones/evaluacion-servicio' },
         { title: 'Creacion de Servicio', url: '/operaciones/creacion-servicio' },        
+      ]
+    },
+    {
+      title: 'Mantenimientos',
+      icon: 'mdi mdi-folder-lock-open',
+      submenu: [
+        { title: 'Usuarios', url: '/mantenimientos/users' },         
       ]
     }
   ];

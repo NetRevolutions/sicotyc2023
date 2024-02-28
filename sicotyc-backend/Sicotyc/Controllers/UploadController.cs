@@ -94,5 +94,46 @@ namespace Sicotyc.Controllers
             }
             
         }
+
+        [HttpGet("{type}/{imgName}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetImage(string type, string imgName)
+        {
+            try
+            {
+                // Obtener la ruta fisica del directorio raiz del proyecto
+                string rootPath = _hostingEnvironment.ContentRootPath;
+
+                // Construir la ruta fisica completa
+                var fullPath = Path.Combine(rootPath, "Uploads", type!, imgName);
+
+                // Verificamos si el archivo existe
+                if (!System.IO.File.Exists(fullPath))
+                {
+                    // Retornamos imagen por defecto
+                    imgName = "imagen-no-disponible.jpg";
+                    fullPath = Path.Combine(rootPath, "Uploads", imgName);
+
+                    // return NotFound();  // Devolver 404 si la imagen no existe
+                }
+
+                var nameSplit = imgName.Split('.');
+                var fileExtension = nameSplit[nameSplit.Length - 1];
+
+                // Leer el archivo de imagen como un arreglo de bytes
+                byte[] bytesImage = await System.IO.File.ReadAllBytesAsync(fullPath);
+
+                // Devolver la imagen como un archivo
+                //return File(bytesImage, "image/" + fileExtension); // Puedes ajustar el tipo de contenido según el tipo de imagen
+                return File(bytesImage, "image/jpeg"); // Puedes ajustar el tipo de contenido según el tipo de imagen
+                //return PhysicalFile(fullPath, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al obtener la imagen: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de obtener la imagen");
+            }
+            
+        }
     }
 }

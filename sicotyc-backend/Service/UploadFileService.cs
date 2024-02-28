@@ -24,7 +24,8 @@ namespace Service
             _userManager = userManager;
             _authManager = authManager;
             _respository = repository;
-        }
+        }        
+
         public async Task<bool> UpdateImageAsync(string type, Guid id, string rootPath, string fileName)
         {
             switch (type.ToUpper())
@@ -53,6 +54,14 @@ namespace Service
                 default: 
                     return false;
             }
+        }
+
+        public async Task<bool> DeleteImageAsync(string type, string rootPath, string fileName)
+        {
+            
+            string oldPath = Path.Combine(rootPath, "Uploads", type!, fileName);
+            this.DeleteImage(oldPath);
+            return true;
         }
 
         private void DeleteImage(string oldPath) {            

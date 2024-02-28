@@ -8,3 +8,42 @@
 #themecolors .selector, cursor {
     cursor: pointer;
 }
+
+.img-avatar {
+    width: 200px;
+    height: 200px;
+}
+
+.avatar {
+    border: 1px solid grey;
+    border-radius: 100%;
+    width: 50px;
+}
+
+.w200 {
+    width: 200px;
+}
+
+.w150 {
+    width: 150px;
+}
+
+.w100 {
+    width: 100px;
+}
+
+.w75 {
+    width: 75px;
+}
+
+.w50 {
+    width: 50px;
+}
+
+.w25 {
+    width: 25px;
+}
+
+.cursor {
+    cursor: pointer;
+}

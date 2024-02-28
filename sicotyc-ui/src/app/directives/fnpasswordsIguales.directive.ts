@@ -6,7 +6,7 @@ export const fnpasswordsIguales: ValidatorFn = (control: AbstractControl): Valid
     const pass1Control = control.get('password');
     const pass2Control = control.get('password2');
 
-    console.log(`pwd: ${pass1Control?.value}, pwd2: ${pass2Control?.value}`);
+    //console.log(`pwd: ${pass1Control?.value}, pwd2: ${pass2Control?.value}`);
 
     if ((pass1Control != null || pass2Control) && pass1Control?.value !== pass2Control?.value) {
         pass2Control?.setErrors({

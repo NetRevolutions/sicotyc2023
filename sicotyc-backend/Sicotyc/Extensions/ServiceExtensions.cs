@@ -1,7 +1,6 @@
 ﻿using AspNetCoreRateLimit;
 using Contracts;
 using Entities.Models;
-using FluentEmail.Smtp;
 using LoggerService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -59,6 +58,9 @@ namespace Sicotyc.Extensions
         public static void ConfigureServiceManager(this IServiceCollection services) =>
             services.AddScoped<IServiceManager, ServiceManager>();
 
+        public static void ConfigureSearchService(this IServiceCollection services) =>
+            services.AddScoped<ISearchService, SearchService>();
+
         public static void ConfigureUploadFileService(this IServiceCollection services) =>
             services.AddScoped<IUploadFileService, UploadFileService>();
 
@@ -105,6 +107,7 @@ namespace Sicotyc.Extensions
 
             builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
             builder.AddEntityFrameworkStores<RepositoryContext>().AddDefaultTokenProviders();
+            
         }
 
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)
