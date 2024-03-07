@@ -12,6 +12,6 @@ namespace Contracts
         Task<ResultProcess> ValidateToken(string token);
         Task<PagedList<User>> GetUsersAsync(UserParameters userParameters, bool trackChanges);
         Task<List<User>> GetUsersByIdCollectionAsync(IEnumerable<string> ids, bool trackChanges);
-        Task<List<ClaimMetadata>> GetClaimsAsync(string token);        
+        Task<List<ClaimMetadata>> GetClaimsAsync(string token);
     }
 }

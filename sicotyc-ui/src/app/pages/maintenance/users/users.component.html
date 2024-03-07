@@ -48,14 +48,14 @@
                                 <td class="text-center">
                                     <img [src]="user.imageUrl" 
                                             alt="Avatar de Usuario" 
-                                            class="avatar">
+                                            class="avatar cursor"
+                                            (click)="openModalImage(user)">
                                     
                                 </td>
                                 <td>{{user.email}}</td>
                                 <td>{{user.userName}}</td>
                                 <td>{{user.firstName}}</td>
                                 <td>{{user.lastName}}</td>
-                                <!-- <td>{{user.roles}}</td>-->
                                 <td>
                                     <select multiple class="form-control" [(ngModel)]="user.roles" (ngModelChange)="onSelectedValues(user)" >
                                         <option value="Administrator">Administrator</option>

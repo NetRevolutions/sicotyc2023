@@ -13,12 +13,12 @@ import { SidebarComponent } from './sidebar/sidebar.component';
   declarations: [
     BreadcrumbsComponent,
     SidebarComponent,
-    HeaderComponent,
+    HeaderComponent
   ],
   exports: [
     BreadcrumbsComponent,
     SidebarComponent,
-    HeaderComponent,
+    HeaderComponent
   ],
   imports: [
     CommonModule,

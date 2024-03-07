@@ -55,6 +55,7 @@ export class UserService {
                 .pipe(
                   tap((resp: any) => {
                     localStorage.setItem('token', resp.token);
+                    //localStorage.setItem('companyId', resp.companyId);
                   })
                 )
   };
@@ -62,6 +63,7 @@ export class UserService {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('claims');
+    //localStorage.removeItem('companyId');
     this.router.navigateByUrl('/login');
   }
 
@@ -79,8 +81,8 @@ export class UserService {
     return this.http.get(`${base_url}/authentication/renewToken`, this.headers)
     .pipe(
       map( (resp: any) => {
-        const { firstName, lastName, userName, email, phoneNumber, img = '', id } = resp.user;
-        this.user = new User(firstName, lastName, userName, email, '', img, phoneNumber, resp.roles, id);
+        const { firstName, lastName, userName, email, phoneNumber, img = '', id, ruc } = resp.user;
+        this.user = new User(firstName, lastName, userName, email, '', img, phoneNumber, resp.roles, id, ruc);
 
         localStorage.setItem('token', resp.token); // Seteamos el token renovado
         return true;
@@ -89,14 +91,20 @@ export class UserService {
     );
   };
 
-  updateProfile( data: {id: string, 
-                        firstName: string,
-                        lastName: string,
-                        userName: string,// No actualizar
-                        email: string,  
-                        phoneNumber: string,
-                        roles: Array<string>
-                      }) {
+  
+  updateProfile( data: User
+                      // {
+                      //   id: string, 
+                      //   firstName: string,
+                      //   lastName: string,
+                      //   userName: string,// No actualizar
+                      //   email: string,  
+                      //   phoneNumber: string,
+                      //   roles: Array<string>,
+                      //   ruc: string
+                      // }
+                      ) {   
+    /*                   
     data.id = this.uid;
     data.firstName = this.user?.firstName || '';
     data.lastName = this.user?.lastName || '';
@@ -104,7 +112,8 @@ export class UserService {
     //data.email = this.user?.email || '';
     data.phoneNumber = this.user?.phoneNumber || '';
     data.roles = this.user?.roles || []; // No Actualizar
-
+    data.ruc = this.user?.ruc || ''; 
+    */
     return this.http.put(`${base_url}/authentication/user/${this.uid}`, data, this.headers)
   };
 
@@ -114,7 +123,7 @@ export class UserService {
       .pipe(
         map((resp: any) => {
           const users = resp.data.map(
-            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id));
+            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id, user.ruc));
           
           return { 
             data: users, 
@@ -130,7 +139,7 @@ export class UserService {
       .pipe(
         map((resp: any) => {
           const users = resp.data.map(
-            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id));
+            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id, user.ruc));
           
           return {
             data: users

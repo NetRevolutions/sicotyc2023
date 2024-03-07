@@ -14,6 +14,8 @@ import { UserService } from 'src/app/services/user.service';
 export class RegisterComponent {
 
   public formSubmitted: boolean = false;
+  public showConfirmPopupFlag: boolean = false;  
+  
 
   public registerForm: FormGroup =  new FormGroup({//this.fb.group({
     firstName: new FormControl('', [Validators.required, Validators.minLength(3)]),
@@ -22,6 +24,7 @@ export class RegisterComponent {
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('',[Validators.required, Validators.minLength(10)]),
     password2: new FormControl('', [Validators.required, Validators.minLength(10)]),
+    ruc: new FormControl('', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]),
     terms: new FormControl(false, [Validators.required]),
     // roles: ['Administrator']
   }, {
@@ -51,6 +54,7 @@ export class RegisterComponent {
         .then((result) => {
           if (result.isConfirmed){
             this.formSubmitted = false;
+            // TODO: Pendiente el envio de un email con los datos
             this.router.navigateByUrl('/login');
           }
         });
@@ -99,7 +103,7 @@ export class RegisterComponent {
   };  
 
   acceptTerms() {
-    return !this.registerForm.get('terms')?.value && this.formSubmitted;
+    return !this.registerForm.get('terms')?.value && this.formSubmitted;    
   };
 
   enableButton(): boolean {
@@ -110,6 +114,14 @@ export class RegisterComponent {
     }
 
     return false;
+  };
+
+  showPopup() {
+    this.showConfirmPopupFlag = true;
+  }
+
+  closePopup() {
+    this.showConfirmPopupFlag = false;    
   }
 
   // passwordsEquals(pass1Name: string, pass2Name: string) {

@@ -21,5 +21,6 @@ namespace Entities.DataTransferObjects
         public string? PhoneNumber { get; set; }
         [Required(ErrorMessage = "El usuario debe de tener el menos un rol")]
         public IEnumerable<string>? Roles { get; set; }
+        public string? Ruc { get; set; }
     }
 }

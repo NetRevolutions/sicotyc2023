@@ -16,5 +16,6 @@ namespace Entities.DataTransferObjects
         public string? Img { get; set; }
         public string? PhoneNumber { get; set; }
         public IList<string>? Roles { get; set; }
+        public string? Ruc { get; set; }
     }
 }

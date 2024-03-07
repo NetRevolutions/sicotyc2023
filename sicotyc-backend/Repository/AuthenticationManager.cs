@@ -1,5 +1,6 @@
 ﻿using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Enum;
 using Entities.Models;
 using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Identity;
@@ -16,15 +17,14 @@ namespace Repository
     public class AuthenticationManager : RepositoryBase<User>, IAuthenticationManager
     {
         private readonly UserManager<User> _userManager;
-        private readonly IConfiguration _configuration;       
-
+        private readonly IConfiguration _configuration;
         private User? _user;
 
         public AuthenticationManager(UserManager<User> userManager, IConfiguration configuration, RepositoryContext repositoryContext)
             : base(repositoryContext)
         {
             _userManager = userManager;
-            _configuration = configuration;  
+            _configuration = configuration;
         }
         public async Task<bool> ValidateUser(UserForAuthenticationDto userForAuth)
         {
@@ -133,7 +133,7 @@ namespace Repository
             {
                 throw ex;
             }
-        }
+        }        
 
         public async Task<ResultProcess> ValidateToken(string token)
         {

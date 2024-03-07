@@ -6,6 +6,7 @@ import { SimuladorTinkaComponent } from './simulador-tinka/simulador-tinka.compo
 import { DonaComponent } from './dona/dona.component';
 import { NgChartsModule } from 'ng2-charts';
 import { RatingComponent } from './rating/rating.component';
+import { ModalImageComponent } from './modal-image/modal-image.component';
 
 
 
@@ -14,13 +15,15 @@ import { RatingComponent } from './rating/rating.component';
     IncrementadorComponent,
     SimuladorTinkaComponent,
     DonaComponent,
-    RatingComponent
+    RatingComponent,
+    ModalImageComponent
   ],
   exports: [
     IncrementadorComponent,
     SimuladorTinkaComponent,
     DonaComponent,
-    RatingComponent
+    RatingComponent,
+    ModalImageComponent
   ],
   imports: [
     CommonModule,

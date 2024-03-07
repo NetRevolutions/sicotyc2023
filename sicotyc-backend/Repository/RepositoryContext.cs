@@ -20,9 +20,17 @@ namespace Repository
             modelBuilder.ApplyConfiguration(new LookupCodeGroupConfiguration());
             modelBuilder.ApplyConfiguration(new LookupCodeConfiguration());
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
+
+            modelBuilder.Entity<CompanyCompanyType>()
+                .HasKey(e => new { e.CompanyId, e.CompanyTypeId});
+            
         }
 
         public DbSet<LookupCodeGroup>? LookupCodeGroups { get; set; }
         public DbSet<LookupCode>? LookupCodes { get; set; }
+        public DbSet<Company>? Companies { get; set; }
+        public DbSet<CompanyType>? CompanyTypes { get; set; }
+        public DbSet<CompanyCompanyType>? CompanyCompanyTypes { get; set; }
+        public DbSet<UserCompany>? UserCompanies { get; set;}
     }
 }

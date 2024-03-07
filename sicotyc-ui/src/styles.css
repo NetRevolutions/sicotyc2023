@@ -47,3 +47,27 @@
 .cursor {
     cursor: pointer;
 }
+
+.text-hyperlink {
+    color: blue; /* Color azul para el texto */
+    text-decoration: underline; /* Subrayado del texto */
+    cursor: pointer; /* Cambiar el cursor al pasar por encima */
+  }
+  
+  .text-hyperlink:hover {
+    color: darkblue; /* Cambiar el color al pasar por encima */
+  }
+
+  .oculto {
+    display: none;
+  }
+  
+  .fondo-modal-imagen {
+    background-color: rgba(0,0,0,0.4);
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+  }

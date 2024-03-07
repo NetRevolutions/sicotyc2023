@@ -43,11 +43,17 @@
                         <input class="form-control" type="password" placeholder="Repetir contraseña" formControlName="password2">
                     </div>
                 </div>
+                <div class="form-group ">
+                    <div class="col-xs-12">
+                        <input class="form-control" type="text" placeholder="Ruc" formControlName="ruc">
+                    </div>
+                </div>
                 <div class="form-group row">
                     <div class="col-md-12">
                         <div class="checkbox checkbox-primary p-t-0">
                             <input id="checkbox-signup" type="checkbox" formControlName="terms">
-                            <label for="checkbox-signup"> Estoy de acuerdo con todos los <a href="#">Terminos</a></label>
+                            <label for="checkbox-signup"> Estoy de acuerdo con todos los <u class="text-hyperlink" (click)="showPopup()">terminos</u></label>
+                            <!-- <label for="checkbox-signup d-inline"> Estoy de acuerdo con todos los <p class="text-hyperlink d-inline" (click)="showPopup()">Terminos</p></label> -->
                         </div>
                     </div>
                 </div>
@@ -57,9 +63,10 @@
                         <p *ngIf="fieldNotValidate('lastName')">* El apellido es obligatorio</p>
                         <p *ngIf="fieldNotValidate('userName')">* El nombre de usuario es obligatorio</p>
                         <p *ngIf="fieldNotValidate('email')">* El correo es obligatorio y tiene que ser valido</p>
+                        <p *ngIf="fieldNotValidate('ruc')">* El ruc es obligatorio y tiene que ser de 11 digitos numericos</p>
                         <!-- <p *ngIf="passwordNotValidate()">* Las contraseñas deben de ser iguales</p> -->
                         <p *ngIf="passwordsEmpty()">* Las contraseñas no deben de estar vacias</p>
-                        <p *ngIf="acceptTerms()">* Debe de aceptar los terminos</p>
+                        <p *ngIf="acceptTerms()">* Debe de aceptar los terminos</p>                        
                     </div>
                 </div>
                 <div class="form-group text-center m-t-20">
@@ -74,9 +81,10 @@
                 </div>
             </form>
         </div>
-    </div>
+    </div>    
 </section>
 <!-- ============================================================== -->
 <!-- End Wrapper -->
 <!-- ============================================================== -->
 <!-- ============================================================== -->
+<app-terms-conditions-popup *ngIf="showConfirmPopupFlag" (closePopupEvent)="closePopup()"></app-terms-conditions-popup>

@@ -14,6 +14,7 @@ export class User {
         public phoneNumber?: string,
         public roles?: string[],
         public id?: string,
+        public ruc?: string
     ) {}
 
     get imageUrl() {

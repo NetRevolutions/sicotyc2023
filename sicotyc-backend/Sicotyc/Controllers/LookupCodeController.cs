@@ -21,12 +21,14 @@ namespace Sicotyc.Controllers
         private readonly IRepositoryManager _repository;
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
-        public LookupCodeController(IServiceManager service, IRepositoryManager repository, ILoggerManager logger, IMapper mapper) 
+        private readonly IAuthenticationManager _authManager;
+        public LookupCodeController(IServiceManager service, IRepositoryManager repository, ILoggerManager logger, IMapper mapper, IAuthenticationManager authManager) 
         { 
             _service = service;
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _authManager = authManager;
         }
 
         [HttpGet]
@@ -88,114 +90,204 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateLookupCodeCollectionForLookupCodeGroup(Guid lookupCodeGroupId, [FromBody] LookupCodeCollectionForCreationDto lookupCodes) 
         {
-            var lastLookupCodeOrder = await _repository.LookupCode.GetLastLookupCodeOrderAsync(lookupCodeGroupId);
-            lastLookupCodeOrder++;
-
-            foreach (var item in lookupCodes.LookupCodes)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                item.LookupCodeGroupId = lookupCodeGroupId;
-                item.LookupCodeOrder = lastLookupCodeOrder;
-                lastLookupCodeOrder++;
-            }
-
-            var lookupCodeCollectionEntity = _mapper.Map<IEnumerable<LookupCode>>(lookupCodes.LookupCodes);
-            if (lookupCodeCollectionEntity.Count() > 0)
-            {
-                foreach (var item in lookupCodeCollectionEntity)
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
                 {
-                    _repository.LookupCode.CreateLookupCodeForLookupCodeGroup(lookupCodeGroupId, item);
+                    return Unauthorized(resultValidateToken.Message);
                 }
+                try
+                {
+                    var lastLookupCodeOrder = await _repository.LookupCode.GetLastLookupCodeOrderAsync(lookupCodeGroupId);
+                    lastLookupCodeOrder++;
 
-                await _repository.SaveAsync();
+                    foreach (var item in lookupCodes.LookupCodes)
+                    {
+                        item.LookupCodeGroupId = lookupCodeGroupId;
+                        item.LookupCodeOrder = lastLookupCodeOrder;
+                        lastLookupCodeOrder++;
+                    }
 
-                var lookupCodeCollectionToReturn = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodeCollectionEntity);
-                var ids = string.Join(",", lookupCodeCollectionToReturn.Select(s => s.Id));
+                    var lookupCodeCollectionEntity = _mapper.Map<IEnumerable<LookupCode>>(lookupCodes.LookupCodes);
+                    if (lookupCodeCollectionEntity.Count() > 0)
+                    {
+                        foreach (var item in lookupCodeCollectionEntity)
+                        {
+                            _repository.LookupCode.CreateLookupCodeForLookupCodeGroup(lookupCodeGroupId, item);
+                        }
 
-                return CreatedAtRoute("LookupCodeCollection", new { ids,  lookupCodeGroupId }, lookupCodeCollectionToReturn);
+                        await _repository.SaveAsync();
+
+                        var lookupCodeCollectionToReturn = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodeCollectionEntity);
+                        var ids = string.Join(",", lookupCodeCollectionToReturn.Select(s => s.Id));
+
+                        return CreatedAtRoute("LookupCodeCollection", new { ids, lookupCodeGroupId }, lookupCodeCollectionToReturn);
+                    }
+                    else
+                    {
+                        _logger.LogWarn("El objeto lookupCodeCollectionEntity no tiene elementos para insertar");
+                        return BadRequest("El objeto lookupCodeCollectionEntity no tiene elementos para insertar");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de crear el LookupCodeCollection, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error en la ejecucion del metodo");
+                }
             }
-            else {
-                _logger.LogWarn("El objeto lookupCodeCollectionEntity no tiene elementos para insertar");
-                return BadRequest("El objeto lookupCodeCollectionEntity no tiene elementos para insertar");
-            }    
+            else
+            {
+                return BadRequest("No hay token en la peticion");
+            }                
         }
 
         [HttpPost]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, [FromBody] LookupCodeForCreationDto lookupCode)
         {
-            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
-            if (lookupCodeGroup == null)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos.");
-                return NotFound();
-            }
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+                try
+                {
+                    var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
+                    if (lookupCodeGroup == null)
+                    {
+                        _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos.");
+                        return NotFound();
+                    }
 
-            if (!lookupCode.LookupCodeOrder.HasValue)
+                    if (!lookupCode.LookupCodeOrder.HasValue)
+                    {
+                        // Obtenemos el ultimo lookupOrder creado                
+                        int lastLookupCodeOrder = await _repository.LookupCode.GetLastLookupCodeOrderAsync(lookupCodeGroupId);
+
+                        lastLookupCodeOrder++;
+
+                        lookupCode.LookupCodeOrder = lastLookupCodeOrder;
+                    }
+
+                    var lookupCodeEntity = _mapper.Map<LookupCode>(lookupCode);
+
+                    _repository.LookupCode.CreateLookupCodeForLookupCodeGroup(lookupCodeGroupId, lookupCodeEntity);
+                    await _repository.SaveAsync();
+
+                    var lookupCodeToReturn = _mapper.Map<LookupCodeDto>(lookupCodeEntity);
+
+                    return CreatedAtRoute("GetLookupCodeForLookupCodeGroup", new { lookupCodeGroupId, id = lookupCodeToReturn.Id }, lookupCodeToReturn);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de crear el LookupCode, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error en la ejecucion del metodo");
+                }
+            }
+            else
             {
-                // Obtenemos el ultimo lookupOrder creado                
-                int lastLookupCodeOrder = await _repository.LookupCode.GetLastLookupCodeOrderAsync(lookupCodeGroupId);
-
-                lastLookupCodeOrder++;
-
-                lookupCode.LookupCodeOrder = lastLookupCodeOrder;
-            }
-
-            var lookupCodeEntity = _mapper.Map<LookupCode>(lookupCode);
-
-            _repository.LookupCode.CreateLookupCodeForLookupCodeGroup(lookupCodeGroupId, lookupCodeEntity);
-            await _repository.SaveAsync();
-
-            var lookupCodeToReturn = _mapper.Map<LookupCodeDto>(lookupCodeEntity);
-
-            return CreatedAtRoute("GetLookupCodeForLookupCodeGroup", new { lookupCodeGroupId, id = lookupCodeToReturn.Id }, lookupCodeToReturn);
+                return BadRequest("No hay token en la peticion");
+            }            
         }        
 
         [HttpPut("{id}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> UpdateLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, Guid id, [FromBody]LookupCodeForUpdateDto lookupCode)
         {
-            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
-            if (lookupCodeGroup == null)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos.");
-                return NotFound();
-            }
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+                try
+                {
+                    var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
+                    if (lookupCodeGroup == null)
+                    {
+                        _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos.");
+                        return NotFound();
+                    }
 
-            var lookupCodeEntity = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges:true);
-            if (lookupCodeEntity == null)
+                    var lookupCodeEntity = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges: true);
+                    if (lookupCodeEntity == null)
+                    {
+                        _logger.LogInfo($"LookupCode con id: {id} no existe en la base de datos.");
+                        return NotFound();
+                    }
+
+                    _mapper.Map(lookupCode, lookupCodeEntity);
+
+                    await _repository.SaveAsync();
+
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de actualizar el LookupCode, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error en la ejecucion del metodo");
+                }
+            }
+            else
             {
-                _logger.LogInfo($"LookupCode con id: {id} no existe en la base de datos.");
-                return NotFound();
+                return BadRequest("No hay token en la peticion");
             }
-
-            _mapper.Map(lookupCode, lookupCodeEntity);
             
-            await _repository.SaveAsync();
-
-            return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLookupCodeForLookupCodeGroup(Guid lookupCodeGroupId, Guid id)
         {
-            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
-            if (lookupCodeGroup == null)
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
             {
-                _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos");
-                return NotFound();
-            }
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+                try
+                {
+                    var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
+                    if (lookupCodeGroup == null)
+                    {
+                        _logger.LogInfo($"LookupCodeGroup con id: {lookupCodeGroupId} no existe en la base de datos");
+                        return NotFound();
+                    }
 
-            var lookupCodeForLookupCodeGroup = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges: false);
-            if (lookupCodeForLookupCodeGroup == null)
+                    var lookupCodeForLookupCodeGroup = await _repository.LookupCode.GetLookupCodeAsync(lookupCodeGroupId, id, trackChanges: false);
+                    if (lookupCodeForLookupCodeGroup == null)
+                    {
+                        _logger.LogInfo($"LookupCode con id: {id} no existe en la base de datos.");
+                        return NotFound();
+                    }
+
+                    _repository.LookupCode.DeleteLookupCode(lookupCodeForLookupCodeGroup);
+                    await _repository.SaveAsync();
+
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de eliminar el LookupCode, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error en la ejecucion del metodo");
+                }
+            }
+            else
             {
-                _logger.LogInfo($"LookupCode con id: {id} no existe en la base de datos.");
-                return NotFound();
-            }
-
-            _repository.LookupCode.DeleteLookupCode(lookupCodeForLookupCodeGroup);
-            await _repository.SaveAsync();
-
-            return NoContent();
+                return BadRequest("No hay token en la peticion");
+            }            
         }
     }
 }

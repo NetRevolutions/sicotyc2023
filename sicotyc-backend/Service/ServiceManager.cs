@@ -11,6 +11,7 @@ namespace Service
         private readonly Lazy<ILookupCodeGroupService> _lookupCodeGroupService;
         private readonly Lazy<ILookupCodeService> _lookupCodeService;
         private readonly Lazy<ISearchService> _searchService;
+        private readonly Lazy<ISunatService> _sunatService;
 
         public ServiceManager(IRepositoryManager repositoryManager, 
                                 ILoggerManager logger, 
@@ -21,6 +22,7 @@ namespace Service
             _lookupCodeGroupService = new Lazy<ILookupCodeGroupService>(() => new LookupCodeGroupService(repositoryManager, logger, mapper));
             _lookupCodeService = new Lazy<ILookupCodeService>(() => new LookupCodeService(repositoryManager,logger, mapper));
             _searchService = new Lazy<ISearchService>(() => new SearchService(repositoryManager, mapper));
+            _sunatService = new Lazy<ISunatService>(() => new SunatService(repositoryManager, mapper)); 
         }
 
         public ILookupCodeGroupService LookupCodeGroupService => _lookupCodeGroupService.Value;
@@ -28,5 +30,7 @@ namespace Service
         public ILookupCodeService LookupCodeService => _lookupCodeService.Value;
 
         public ISearchService SearchService => _searchService.Value;
+
+        public ISunatService SunatService => _sunatService.Value;
     }
 }

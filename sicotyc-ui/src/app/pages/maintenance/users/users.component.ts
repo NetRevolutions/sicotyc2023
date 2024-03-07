@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import Swal from 'sweetalert2';
 
 // Model
@@ -7,6 +7,8 @@ import { User } from 'src/app/models/user.model';
 // Services
 import { SearchesService } from 'src/app/services/searches.service';
 import { UserService } from 'src/app/services/user.service';
+import { ModalImageService } from 'src/app/services/modal-image.service';
+import { Subscription, delay } from 'rxjs';
 
 
 @Component({
@@ -15,21 +17,35 @@ import { UserService } from 'src/app/services/user.service';
   styles: [
   ]
 })
-export class UsersComponent implements OnInit{
+export class UsersComponent implements OnInit, OnDestroy{
   public totalUsers: number = 0;
   public users: User[] = [];
   public usersTemp: User[] = [];
   public from: number = 0;
   public loading: boolean = true;
   public useSearch: boolean = false;
+  public imgSubs: Subscription = new Subscription();
 
   constructor( private userService: UserService,
-                private searchesService: SearchesService) {}
+                private searchesService: SearchesService,
+                private modalImageService: ModalImageService) {}  
   
   ngOnInit(): void {
     this.loadUsers();
+
+    // Con esto indico que se termino de actualizar la imagen desde el popup
+    this.imgSubs = this.modalImageService.newImage
+    .pipe(
+      delay(100) // con esto nos aseguramos que primero se actualice la foto  luego se llama al metodo de cargar usuarios.
+    )
+    .subscribe( img => {
+      this.loadUsers()
+    }); 
   };
 
+  ngOnDestroy(): void {
+    this.imgSubs.unsubscribe(); // Con esto evitamos fuga de memoria
+  };
 
   loadUsers() {
     this.loading = true;
@@ -38,11 +54,7 @@ export class UsersComponent implements OnInit{
       this.totalUsers = resp.pagination.totalCount;
       this.users = resp.data;
       this.usersTemp = resp.data;
-      this.loading = false;
-
-      // console.log(resp);
-      // console.log('totalUsers',this.totalUsers);
-      // console.log('users', this.users);
+      this.loading = false;      
       //console.log(this.users);
     });
   }
@@ -70,12 +82,7 @@ export class UsersComponent implements OnInit{
     .subscribe((resp: any) => {
       if (resp.length > 0)
       {
-        this.useSearch = true;     
-        // TODO: llamar a un metodo que trae todos los usuarios basado en la coleccion de Ids. 
-        // this.users = this.users.filter(obj => {
-        //   return resp.some((item: any) => item.id == obj.id)
-        // });
-
+        this.useSearch = true;
         var ids = resp.map((e:any) => e.id);
         // console.log(ids);
 
@@ -141,11 +148,65 @@ export class UsersComponent implements OnInit{
             console.info('Usuario elmininado correctamente');
           }
         });        
-      }
+      }      
     });
   };
 
   onSelectedValues(user: User) {
+    if (user.roles?.indexOf('Administrator') !== -1)
+    {
+      Swal.fire({
+        title: "Convertir en Administrator?",
+        text: `Esta a punto de asignar a ${ user.firstName } el rol Administrator, estas seguro?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Si, procede"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.userService.updateProfile(user)
+          .subscribe({
+            next: (resp) => {
+              //console.log(resp);
+              Swal.fire({
+                title: "Hecho!",
+                text: "El rol del usuario fue actualizado.",
+                icon: "success"
+              }).then(() => {
+                this.loadUsers();
+              });
+            },
+            error: (err) => {
+              Swal.fire('Error', 'Hubo un error durante la actualizacion del usuario', 'error');
+            },
+            complete: () => {
+              console.info('Usuario actualizado correctamente');
+            }
+          });        
+        }
+        else {
+          this.loadUsers();
+        }
+      });      
+    }
+    else {
+      this.userService.updateProfile(user)
+      .subscribe({
+        next: (resp) => {
+          this.loadUsers();
+        },
+        error: (err) => {
+          Swal.fire('Error', 'Hubo un error durante la actualizacion del usuario', 'error');
+        },
+        complete: () => {
+          console.info('Usuario actualizado correctamente');
+        }
+      });
+    }
+  };
+
+  openModalImage(user: User)
+  {
     console.log(user);
+    this.modalImageService.openModal('USERS', user.id, user.img)
   }
 }

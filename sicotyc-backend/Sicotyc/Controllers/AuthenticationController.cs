@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Sicotyc.ActionFilters;
 using Sicotyc.ModelBinders;
+using System.Linq.Dynamic.Core;
 using System.Net;
 
 namespace Sicotyc.Controllers
@@ -22,7 +23,7 @@ namespace Sicotyc.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
         private readonly IAuthenticationManager _authManager;
-        private readonly IRepositoryManager _respository;
+        private readonly IRepositoryManager _repository;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IUploadFileService _uploadService;
         public AuthenticationController(ILoggerManager logger, IMapper mapper,
@@ -34,7 +35,7 @@ namespace Sicotyc.Controllers
             _mapper = mapper;
             _userManager = userManager;
             _authManager = authManager;
-            _respository = repository;
+            _repository = repository;
             _hostingEnvironment = hostingEnvironment;
             _uploadService = uploadFileService;
         }
@@ -46,12 +47,10 @@ namespace Sicotyc.Controllers
             if (!await _authManager.ValidateUser(user))
             {
                 _logger.LogWarn($"{nameof(Authenticate)}: Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
-                return Unauthorized();
-            }
+                return Unauthorized("Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
+            }            
 
-            //var userDB = await _userManager.FindByNameAsync(user.UserName);
-
-            return Ok(new { Token = await _authManager.CreateTokenAsync() });
+            return Ok(new { Token = await _authManager.CreateTokenAsync()/*, CompanyId = companyId*/ });
         }
 
         [HttpPost("change-password")]
@@ -129,38 +128,13 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> GetClaims([FromQuery] string token) {
             try
-            {
-                // Aplicamos una restriccion de que Claims podemos devolver.
-                LookupCodeParameters lookupCodeParameters = new LookupCodeParameters();
-                
-                var lookupCodeGroup = await _respository.LookupCodeGroup.GetLookupCodeGroupByNameAsync(LookupCodeGroupEnum.CLAIMS_PERMITIDOS.GetStringValue(), trackChanges: false);
-                if (lookupCodeGroup == null)
-                    return NoContent();
-
-                var lookupCodesFromDb = await _respository.LookupCode.GetLookupCodesAsync(lookupCodeGroup.Id, lookupCodeParameters, trackChanges: false);
-                var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
-
-                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
+            {                
+                List<ClaimMetadata> claims = await GetClaimsAsync(token);
 
                 if (claims.Count() > 0)
-                {
-                    List<ClaimMetadata> result = new List<ClaimMetadata>();
-
-                    // Evaluamos para ver que Claims enviamos
-                    foreach (var item in claims)
-                    {
-                        if (lookupCodesDto.Any(c => c.LookupCodeValue?.Trim().ToLower() == item.Type?.Trim().ToLower()))
-                        { 
-                            result.Add(item);
-                        }
-                    }
-
-                    return Ok(new { Claims = result });
-                }
+                    return Ok(new { Claims = claims });
                 else
-                {
                     return NoContent(); // No contiene claims
-                }
             }
             catch (Exception ex)
             {
@@ -203,15 +177,30 @@ namespace Sicotyc.Controllers
                     return BadRequest("No hay token en la peticion");
                 }
 
-                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
+                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);                
 
                 if (claims.Count() > 0)
                 {
                     string? uid = claims.Find(x => x.Type == "Id")?.Value;
-                    var renewToken = _authManager.RenewTokenAsync(uid.ToString());
+                    var renewToken = _authManager.RenewTokenAsync(uid.ToString());                    
+
+                    var userDto = _mapper.Map<UserDto>(renewToken.Result.User);
+                    userDto.Roles = userDto.Roles = _userManager.GetRolesAsync(new User
+                    {
+                        Id = userDto.Id,
+                        FirstName = userDto.FirstName,
+                        LastName = userDto.LastName,
+                        Email = userDto.Email,
+                        UserName = userDto.UserName
+                    }).Result.ToList();
+
+                    Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(uid, false);
+                    userDto.Ruc = company.Ruc;
+
                     return Ok(new { Token = renewToken.Result.Token,
-                                    User = _mapper.Map<UserDto>(renewToken.Result.User),
-                                    Roles = renewToken.Result.Roles});
+                                    User = userDto,
+                                    Roles = renewToken.Result.Roles
+                    });
                 }
                 return BadRequest("Token no valido");
             }
@@ -227,6 +216,10 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> RegisterUser([FromBody] UserForRegistrationDto userForRegistration)
         {
+            if (userForRegistration.Ruc == null || userForRegistration.Ruc.Length != 11)
+            {
+                return BadRequest("El ruc es un valor de 11 digitos numericos");
+            }
             var user = _mapper.Map<User>(userForRegistration);
             if (userForRegistration.Password != null)
             {
@@ -245,9 +238,48 @@ namespace Sicotyc.Controllers
 
                     ICollection<string> roles = new List<string> { "Member" };
                     userForRegistration.Roles = roles;
-                }
+                }               
 
-                await _userManager.AddToRolesAsync(user, userForRegistration.Roles);                
+                await _userManager.AddToRolesAsync(user, userForRegistration.Roles);
+                
+
+                // Company section
+                var companyDB = await _repository.Company.GetCompanyByRucAsync(userForRegistration.Ruc, trackChanges: false);
+                if (companyDB == null)
+                {
+                    // Register Company
+                    Company company = new Company() 
+                    { 
+                        CompanyId = Guid.NewGuid(),
+                        Ruc = userForRegistration.Ruc,
+                        CreatedBy = user.Id
+                    };
+                    _repository.Company.CreateCompany(company);
+                    await _repository.SaveAsync();
+
+
+                    // Registramos en la tabla UserCompany
+                    UserCompany userCompany = new UserCompany()
+                    {
+                        Id = user.Id,
+                        CompanyId = company.CompanyId
+                    };
+                    _repository.UserCompany.CreateUserCompany(userCompany);
+                    await _repository.SaveAsync();
+
+
+                }
+                else 
+                {
+                    // Registramos en la tabla UserCompany
+                    UserCompany userCompany = new UserCompany()
+                    {
+                        Id = user.Id,
+                        CompanyId = companyDB.CompanyId
+                    };
+                    _repository.UserCompany.CreateUserCompany(userCompany);
+                    await _repository.SaveAsync();
+                }                
 
                 return StatusCode(201); // 201 = Created
 
@@ -271,11 +303,11 @@ namespace Sicotyc.Controllers
                 if (!resultValidateToken.Success)
                 {
                     return Unauthorized(resultValidateToken.Message);
-                }
+                }                
 
                 try
                 {
-                    var usersFromDb = await _respository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
+                    var usersFromDb = await _repository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
 
                     //Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(usersFromDb.MetaData));
 
@@ -283,6 +315,7 @@ namespace Sicotyc.Controllers
 
                     foreach (var userDto in usersDto)
                     {
+                        // Roles
                         userDto.Roles = _userManager.GetRolesAsync(new User
                         {
                             Id = userDto.Id,
@@ -291,6 +324,11 @@ namespace Sicotyc.Controllers
                             Email = userDto.Email,
                             UserName = userDto.UserName
                         }).Result.ToList();
+
+                        // Ruc
+                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
+                        userDto.Ruc = company.Ruc;
+
                     }
 
                     return Ok(new
@@ -343,13 +381,17 @@ namespace Sicotyc.Controllers
 
                     var usersToReturn = _mapper.Map<IEnumerable<UserDto>>(userEntities);                    
 
-                    usersToReturn.ForEach(user =>
+                    usersToReturn.ForEach(async user =>
                     {
                         var userTemp = userEntities.Find(x =>  x.Id == user.Id);
                         if (userTemp != null)
                         {
                             user.Roles = _userManager.GetRolesAsync(userTemp).Result;
                         }
+
+                        // Ruc
+                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(user.Id, false);
+                        user.Ruc = company.Ruc;
                     });
                     
 
@@ -393,6 +435,7 @@ namespace Sicotyc.Controllers
                     else
                     {
                         var userDto = _mapper.Map<UserDto>(userResult);
+                        // Roles
                         userDto.Roles = _userManager.GetRolesAsync(new User
                         {
                             Id = userDto.Id,
@@ -401,6 +444,10 @@ namespace Sicotyc.Controllers
                             Email = userDto.Email,
                             UserName = userDto.UserName
                         }).Result.ToList();
+
+                        // Ruc
+                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
+                        userDto.Ruc = company.Ruc;
 
                         return Ok(userDto);
                     }
@@ -434,7 +481,7 @@ namespace Sicotyc.Controllers
 
                 try
                 {
-                    var userDB = _userManager.FindByIdAsync(id.ToString()).Result;
+                    var userDB = _userManager.FindByIdAsync(userDto.Id).Result;
                     if (userDB == null)
                     {
                         _logger.LogError($"Usuario con id: {id} no existe");
@@ -445,11 +492,11 @@ namespace Sicotyc.Controllers
                         //_mapper.Map(userDto, userDB); // No funciona porque no se puede excluir el Id
 
                         // Modificamos solo las propiedades necesarias
-                        userDB.FirstName = userDto.FirstName;
-                        userDB.LastName = userDto.LastName;
-                        userDB.Email = userDto.Email;
-                        userDB.UserName = userDto.UserName;
-                        userDB.PhoneNumber = userDto.PhoneNumber;
+                        userDB.FirstName = userDto.FirstName != null ? userDto.FirstName : userDB.FirstName;
+                        userDB.LastName = userDto.LastName != null ? userDto.LastName : userDB.LastName;
+                        userDB.Email = userDto.Email != null ? userDto.Email : userDB.Email;
+                        userDB.UserName = userDto.UserName != null ? userDto.UserName : userDB.UserName;
+                        userDB.PhoneNumber = userDto.PhoneNumber != null ? userDto.PhoneNumber : userDB.PhoneNumber;                        
 
                         var result = await _userManager.UpdateAsync(userDB);
                         if (result.Succeeded)
@@ -464,6 +511,52 @@ namespace Sicotyc.Controllers
                             {
                                 await _userManager.AddToRolesAsync(userDB, currentUserRoles);
                             }
+
+                            // Company y UserCompany
+                            // 3.- Buscar el company por ruc
+                            Company companyDB = await _repository.Company.GetCompanyByRucAsync(userDto.Ruc, false);
+                            if (companyDB == null)
+                            {
+                                // 4.- Si no existe... registrar en la tabla company y luego en la tabla userCompany
+                                companyDB = new Company() {
+                                    CompanyId = Guid.NewGuid(),
+                                    Ruc = userDto.Ruc,
+                                    CreatedBy = userDto.Id
+                                };
+                                _repository.Company.CreateCompany(companyDB);
+                                await _repository.SaveAsync();
+
+                                // Eliminamos cualquier otro UserCompany asociado al Id del usuario
+                                await _repository.UserCompany.DeleteAllCompaniesAssociatedUserAsync(userDto.Id, false);
+
+                                // Insertamos el nuevo registro en la table UserCompany
+                                UserCompany userCompany = new UserCompany() { 
+                                    Id = userDto.Id,
+                                    CompanyId = companyDB.CompanyId
+                                };
+
+                                _repository.UserCompany.CreateUserCompany(userCompany);
+                                await _repository.SaveAsync();
+
+                            }
+                            else 
+                            {
+
+                                // 5.- Si existe... obtener el id y actualizar en la tabla userCompany
+                                // Eliminamos cualquier otro UserCompany asociado al Id del usuario
+                                await _repository.UserCompany.DeleteAllCompaniesAssociatedUserAsync(userDto.Id, false);
+
+                                // Insertamos el nuevo registro en la table UserCompany
+                                UserCompany userCompany = new UserCompany()
+                                {
+                                    Id = userDto.Id,
+                                    CompanyId = companyDB.CompanyId
+                                };
+
+                                _repository.UserCompany.CreateUserCompany(userCompany);
+                                await _repository.SaveAsync();
+                            }
+
                             _logger.LogInfo($"Se actualizo los datos del usuario con el id: {id}");
                             return Ok("Usuario actualizado satisfactoriamente");
                         }
@@ -523,7 +616,20 @@ namespace Sicotyc.Controllers
 
                     }
 
-                    // 3.- Delete user
+                    // 3.- Delete from userCompany
+                    var companyId = await _repository.UserCompany.GetCompanyIdByUserIdAsync(userDB.Id, false);
+                    if (companyId != null)
+                    {
+                        UserCompany userCompany = new UserCompany() { 
+                            Id = userDB.Id,
+                            CompanyId = companyId,
+                        };
+
+                        _repository.UserCompany.DeleteUserCompany(userCompany);
+                        await _repository.SaveAsync();
+                    }
+
+                    // 4.- Delete user
                     var result = await _userManager.DeleteAsync(userDB);
 
                     if (result.Succeeded)
@@ -550,6 +656,46 @@ namespace Sicotyc.Controllers
             }            
         }
 
+        #endregion
+
+        #region Private methods
+        private async Task<List<ClaimMetadata>> GetClaimsAsync(string token) { 
+        
+            var claims = new List<ClaimMetadata>();
+
+            try
+            {
+                // Aplicamos una restriccion de que Claims podemos devolver.
+                LookupCodeParameters lookupCodeParameters = new LookupCodeParameters();
+
+                var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupByNameAsync(LookupCodeGroupEnum.CLAIMS_PERMITIDOS.GetStringValue(), trackChanges: false);
+                if (lookupCodeGroup != null)
+                {
+                    var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroup.Id, lookupCodeParameters, trackChanges: false);
+                    var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
+                    var claimsResult = await _authManager.GetClaimsAsync(token);
+                    if (claimsResult.Count() > 0) 
+                    {
+                        List<ClaimMetadata> result = new List<ClaimMetadata>();
+                        // Evaluamos para ver que Claims enviamos
+                        foreach (var item in claimsResult) {
+                            if (lookupCodesDto.Any(c => c.LookupCodeValue?.Trim().ToLower() == item.Type?.Trim().ToLower()))
+                            {
+                                result.Add(item);
+                            }
+                        }
+                        claims = result;
+                    }
+                }                
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError($"Se produjo un error al intentar leer el token {token}");
+                throw;
+            }
+
+            return claims;
+        }
         #endregion
     }
 }

@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit{
         this.router.navigateByUrl('/');
       },
       error: (err) => {
-        Swal.fire('Error', err.error.msg, 'error');
+        Swal.fire('Error', err.error, 'error');
       },
       complete: () => console.info('login de usuario realizado')
     })
