@@ -24,6 +24,11 @@ import { EvaluacionServicioComponent } from './operaciones/evaluacion-servicio/e
 // Mantenimientos
 import { MaintenanceComponent } from './maintenance/maintenance.component';
 import { UsersComponent } from './maintenance/users/users.component';
+import { UserComponent } from './maintenance/users/user.component';
+import { LookupCodeGroupsComponent } from './maintenance/lookup/lookup-code-groups.component';
+import { LookupCodeGroupComponent } from './maintenance/lookup/lookup-code-group.component';
+import { LookupCodesComponent } from './maintenance/lookup/lookup-codes.component';
+import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component';
 
 
 const routes: Routes = [
@@ -59,7 +64,12 @@ const routes: Routes = [
         canActivate: [ AuthGuard ],
         children: [
             { path: '', component: MaintenanceComponent, data: {title: 'Mantenimientos' } },
-            { path: 'users', component: UsersComponent, data: {title: 'Usuarios de Aplicacion'}}
+            { path: 'users', component: UsersComponent, data: {title: 'Usuarios de Aplicacion'}},
+            { path: 'users/:id', component: UserComponent, data: {title: 'Usuario de Aplicacion'}},
+            { path: 'lookupCodeGroups', component: LookupCodeGroupsComponent, data: {title: 'Lookup Code Groups'}},
+            { path: 'lookupCodeGroups/:id', component: LookupCodeGroupComponent, data: {title: 'Lookup Code Group'}},
+            { path: 'lookupCodeGroups/:id/lookupCodes', component: LookupCodesComponent, data: {title: 'Lookup Codes'}},
+            { path: 'lookupCodeGroups/:id/lookupCodes/:lcId', component: LookupCodeComponent, data: {title: 'Lookup Code'}},
         ]
     }
 ];

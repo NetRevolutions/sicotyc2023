@@ -25,7 +25,7 @@ export class SearchesService {
   }
 
   search(
-    collection: 'USERS'|'TRANSPORTS',
+    collection: 'USERS'|'TRANSPORTS'|'LOOKUPCODEGROUPS'|'LOOKUPCODES',
     term: string,
 
     ) {

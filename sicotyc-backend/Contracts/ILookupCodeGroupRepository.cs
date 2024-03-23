@@ -1,9 +1,11 @@
 ﻿using Entities.Models;
+using Entities.RequestFeatures;
 
 namespace Contracts
 {
     public interface ILookupCodeGroupRepository
     {
+        Task<PagedList<LookupCodeGroup>> GetAllLookupCodeGroupsAsync(LookupCodeGroupParameters lookupCodeGroupParameters,  bool trackChanges);
         Task<IEnumerable<LookupCodeGroup>> GetAllLookupCodeGroupsAsync(bool trackChanges);
         Task<LookupCodeGroup> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges);
         Task<LookupCodeGroup> GetLookupCodeGroupByNameAsync(string name, bool trackChanges);

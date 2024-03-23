@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Models;
 using Entities.RequestFeatures;
 using FluentEmail.Core;
 using Service.Contracts;
@@ -31,8 +32,11 @@ namespace Service
                 case "USERS":
                     return await SearchUsersAsync(searchTerm);                    
                 case "TRANSPORTS":                    
-                    throw new NotImplementedException($"La coleccion {collection} aun no se encuentra implementada");                   
-                    
+                    throw new NotImplementedException($"La coleccion {collection} aun no se encuentra implementada");
+                case "LOOKUPCODEGROUPS":
+                    return await SearchLookupCodeGroupsAsync(searchTerm);
+                case "LOOKUPCODES":
+                    return await SearchLookupCodesAsync(searchTerm);
                 default:
                     throw new ArgumentException("Coleccion no valida", nameof(collection));
                        
@@ -52,6 +56,40 @@ namespace Service
             
             return searchesDto;
             
+        }
+
+        public async Task<IEnumerable<SearchResultDto>> SearchLookupCodeGroupsAsync(string searchTerm)
+        {
+            LookupCodeGroupParameters lookupCodeGroupParameters = new LookupCodeGroupParameters();
+            lookupCodeGroupParameters.SearchTerm = searchTerm;
+            lookupCodeGroupParameters._pageSize = 1000;
+
+            var lookupCodeGroupsFromDB = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(lookupCodeGroupParameters, trackChanges: false);
+
+            var searchesDto = _mapper.Map<IEnumerable<SearchResultDto>>(lookupCodeGroupsFromDB);
+            searchesDto.ForEach(x => { x.Entity = "LookupCodeGroups"; });
+
+            return searchesDto;
+            
+        }
+
+        public async Task<IEnumerable<SearchResultDto>> SearchLookupCodesAsync(string searchTerm)
+        {
+            string[] search = searchTerm.Split("|");
+            Guid lookupCodeGroupId = new Guid(search[0].ToString());
+            string term = search[1].ToString();
+
+            LookupCodeParameters lookupCodeParameters = new LookupCodeParameters();
+            lookupCodeParameters.SearchTerm = term;
+            lookupCodeParameters._pageSize = 1000;            
+
+            var lookupCodesFromDB = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, lookupCodeParameters, trackChanges: false);
+
+            var searchesDto = _mapper.Map<IEnumerable<SearchResultDto>>(lookupCodesFromDB);
+            searchesDto.ForEach(x => { x.Entity = "LookupCodes"; });
+
+            return searchesDto;
+
         }
     }
 }

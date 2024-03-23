@@ -43,9 +43,28 @@ namespace Sicotyc.Controllers
 
             var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, lookupCodeParameters, trackChanges: false);
 
-            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(lookupCodesFromDb.MetaData));
+            //Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(lookupCodesFromDb.MetaData));
             
             var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
+            return Ok(new { 
+                data = lookupCodesDto,
+                pagination = lookupCodesFromDb.MetaData
+            });
+        }
+
+        [HttpGet("All")]
+        public async Task<IActionResult> GetLookupCodesForLookupCodeGroupAll(Guid lookupCodeGroupId)
+        {
+            var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
+            if (lookupCodeGroup == null)
+            {
+                _logger.LogInfo($"El LookupCode con id: {lookupCodeGroupId} no existe en la base de datos.");
+                return NotFound();
+            }
+
+            var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, trackChanges: false);
+            var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
+
             return Ok(lookupCodesDto);
         }
 

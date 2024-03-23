@@ -29,7 +29,11 @@ namespace Repository
             //return new PagedList<LookupCode>(lookupCodes, lookupCodeParameters.PageNumber, lookupCodeParameters.PageSize, count);
             return PagedList<LookupCode>
                 .ToPagedList(lookupCodes, lookupCodeParameters.PageNumber, lookupCodeParameters.PageSize);
-        }           
+        }
+
+        public async Task<IEnumerable<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackChanges) =>
+            await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges)
+            .ToListAsync();
 
         public async Task<LookupCode> GetLookupCodeAsync(Guid lookupCodeGroupId, Guid id, bool trackChanges) =>
             await FindByCondition(lc => lookupCodeGroupId.Equals(lookupCodeGroupId) && lc.Id.Equals(id), trackChanges)

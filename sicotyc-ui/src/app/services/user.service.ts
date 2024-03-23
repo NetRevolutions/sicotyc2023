@@ -72,7 +72,7 @@ export class UserService {
     return this.http.get(`${base_url}/authentication/claims?token=${token}`);    
   };
 
-  getClaimsFromLocalStorage(): any {
+  getClaimsFromLocalStorage(): any[] {
     const claims = localStorage.getItem('claims') || '';
     return JSON.parse(claims);
   }
@@ -147,6 +147,19 @@ export class UserService {
         })
       )
   };
+
+  getUserById(id: string) {
+    const url = `${base_url}/authentication/user/${id}`
+    return this.http.get(url, this.headers)
+      .pipe(
+        map((resp: any) => {          
+          const user = new User(resp.data.firstName, resp.data.lastName, resp.data.userName, resp.data.email, '', resp.data.img, resp.data.phoneNumber, resp.data.roles, resp.data.id, resp.data.ruc);
+          return {
+            data: user
+          };
+        })
+      );
+  }
 
   deleteUser(user: User) {
     // console.log('User eliminado');

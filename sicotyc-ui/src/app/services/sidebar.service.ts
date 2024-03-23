@@ -31,7 +31,24 @@ export class SidebarService {
       title: 'Mantenimientos',
       icon: 'mdi mdi-folder-lock-open',
       submenu: [
-        { title: 'Usuarios', url: '/mantenimientos/users' },         
+        { title: 'Usuarios', url: '/mantenimientos/users' },
+        { title: 'Lookup Code Groups', url: '/mantenimientos/lookupCodeGroups'},
+        { title: 'Lookup Codes', url: '/mantenimientos/lookupCodeGroups/all/lookupCodes'}         
+      ]
+    },
+    {
+      title: 'Tutoriales',
+      icon: 'mdi mdi-folder-lock-open',
+      submenu: [
+        { title: 'Conociendo SICOTYC', url: '/' },
+        { title: 'Solicitar Servicios', url: '/' },
+        { title: 'Seguimiento de Operaciones', url: '/' },
+        { title: 'Buscar Transporte', url: '/' },
+        { title: 'Registar Choferes', url: '/' },
+        { title: 'Registrar Unidades y/o Complementos', url: '/' },
+        { title: 'Solicitar SCTR', url: '/' },
+        { title: 'Tramites DPW', url: '/' },
+        { title: 'Tramites APM', url: '/' },
       ]
     }
   ];

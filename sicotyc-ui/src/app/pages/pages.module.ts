@@ -8,6 +8,7 @@ import { NgChartsModule } from 'ng2-charts';
 // Modulos
 import { SharedModule } from '../shared/shared.module';
 import { ComponentsModule } from '../components/components.module';
+import { PipesModule } from '../pipes/pipes.module';
 
 // Componentes
 import { DashboardComponent } from './dashboard/dashboard.component';
@@ -21,6 +22,12 @@ import { RxjsComponent } from './rxjs/rxjs.component';
 import { ProfileComponent } from './profile/profile.component';
 import { UsersComponent } from './maintenance/users/users.component';
 import { MaintenanceComponent } from './maintenance/maintenance.component';
+import { UserComponent } from './maintenance/users/user.component';
+import { LookupCodeGroupsComponent } from './maintenance/lookup/lookup-code-groups.component';
+import { LookupCodeGroupComponent } from './maintenance/lookup/lookup-code-group.component';
+import { LookupCodesComponent } from './maintenance/lookup/lookup-codes.component';
+import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component';
+
 
 @NgModule({
   declarations: [
@@ -35,6 +42,11 @@ import { MaintenanceComponent } from './maintenance/maintenance.component';
     ProfileComponent,
     UsersComponent,
     MaintenanceComponent,
+    UserComponent,
+    LookupCodeGroupsComponent,
+    LookupCodeGroupComponent,
+    LookupCodesComponent,
+    LookupCodeComponent,
     
   ],
   exports: [
@@ -51,7 +63,8 @@ import { MaintenanceComponent } from './maintenance/maintenance.component';
     RouterModule,    
     SharedModule,
     ComponentsModule,
-    NgChartsModule
+    NgChartsModule,
+    PipesModule
   ],
 })
 export class PagesModule { }

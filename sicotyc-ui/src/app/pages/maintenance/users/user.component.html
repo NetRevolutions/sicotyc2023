@@ -1,0 +1,146 @@
+<div class="row animated fadeIn fast">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Usuario</h4>
+                <h6 class="card-subtitle">Actualizar información</h6>
+                <form class="form-horizontal p-t-20"
+                    [formGroup]="userForm"
+                    (submit)="saveUser()">
+                    <div class="form-group row"
+                            *ngIf="userSelected">
+                        <label for="exampleInputuname3" class="col-sm-3 control-label">Foto</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <img [src]="userSelected.img | img: 'users'" 
+                                     class="w200"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="exampleInputuname3" class="col-sm-3 control-label">Username*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-user"></i></div>
+                                <input type="text"
+                                        formControlName="userName"
+                                        class="form-control" 
+                                        id="exampleInputuname3" 
+                                        placeholder="Nombre de Usuario">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="exampleInputEmail3" class="col-sm-3 control-label">Email*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-email"></i></div>
+                                <input type="email" 
+                                        formControlName="email"
+                                        class="form-control" 
+                                        id="exampleInputEmail3" 
+                                        placeholder="Correo Electronico">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="firstName" class="col-sm-3 control-label">Nombre*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-lock"></i></div>
+                                <input type="text"
+                                        formControlName="firstName" 
+                                        class="form-control" 
+                                        id="firstName" 
+                                        placeholder="Nombres">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="lastName" class="col-sm-3 control-label">Apellidos*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-lock"></i></div>
+                                <input type="text"
+                                        formControlName="lastName" 
+                                        class="form-control" 
+                                        id="lastName" 
+                                        placeholder="Apellidos">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="ruc" class="col-sm-3 control-label">Ruc*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-lock"></i></div>
+                                <input type="text"
+                                        formControlName="ruc" 
+                                        class="form-control" 
+                                        id="ruc" 
+                                        placeholder="ruc">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-0">
+                        <div class="offset-sm-3 col-sm-9">
+                            <button type="submit"
+                                    [disabled]="userForm.invalid"
+                                    class="btn btn-success waves-effect waves-light">
+                                <i class="fa fa-save"></i>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Usuario - Detalle</h4>
+                <h6 class="card-subtitle">Actualizar información</h6>
+                <form class="form-horizontal p-t-20">
+                    <div class="form-group row">
+                        <label for="dateOfBirth" class="col-sm-3 control-label">Fecha de Nacimiento</label>
+                        <div class="col-sm-4">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-world"></i></div> -->
+                                <input type="date"                                        
+                                        class="form-control" 
+                                        id="dateOfBirth" 
+                                        placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="documentType" class="col-sm-3 control-label">Tipo de Documento</label>
+                        <div class="col-sm-9">
+                            <div class="input-group" id="documentType">
+                                <select class="form-control">
+                                    <option value="">Seleccione</option>
+                                    <option value="DNI">Doc. Nac. Ident.</option>
+                                    <option value="CEXT">Carnet Extranjeria</option>
+                                    <option value="PTP">Carnet Temp. Permanencia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="documentNumber" class="col-sm-3 control-label">Nro de Documento</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-world"></i></div> -->
+                                <input type="text"                                        
+                                        class="form-control" 
+                                        id="documentNumber" 
+                                        placeholder="Numero de documento">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

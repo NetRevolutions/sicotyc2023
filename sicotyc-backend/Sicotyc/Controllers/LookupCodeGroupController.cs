@@ -2,11 +2,13 @@
 using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Models;
+using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Sicotyc.ActionFilters;
 using Sicotyc.ModelBinders;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Sicotyc.Controllers
 {
@@ -30,14 +32,48 @@ namespace Sicotyc.Controllers
 
         //[HttpGet]
         //[HttpGet(Name = "GetLookupCodeGroups"), Authorize] // Con esto implementamos autorizacion a los endpoints que deseamos
-        [HttpGet(Name = "GetLookupCodeGroups"), Authorize(Roles = "Manager,Administrator")] // Con esto indicamos que solo un determinado rol tiene acceso
-        public async Task<IActionResult> GetLookupCodeGroups() // Mejorar para cambiarlo por ActionResult
+        //[HttpGet(Name = "GetLookupCodeGroups"), Authorize(Roles = "Manager,Administrator")] // Con esto indicamos que solo un determinado rol tiene acceso
+        [HttpGet("GetLookupCodeGroups")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetLookupCodeGroups([FromQuery] LookupCodeGroupParameters lookupCodeGroupParameters) // Mejorar para cambiarlo por ActionResult
         {
-            // throw new Exception("Exception"); // Usado para pruebas
-            var lookupCodeGroups = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(trackChanges: false);
-            var lookupCodeGroupsDto = _mapper.Map<IEnumerable<LookupCodeGroupDto>>(lookupCodeGroups);
-            return Ok(lookupCodeGroupsDto);
+            try
+            {
+                var lookupCodeGroupsDb = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(lookupCodeGroupParameters, trackChanges: false);
+
+                var lookupCodeGroupsDto = _mapper.Map<IEnumerable<LookupCodeGroupDto>>(lookupCodeGroupsDb);
+                return Ok(new
+                {
+                    data = lookupCodeGroupsDto,
+                    pagination = lookupCodeGroupsDb.MetaData
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de realizar la busqueda de lookupCodeGroups, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de realizar la busqueda de lookupCodeGroups");
+            }
+
         }
+
+        [HttpGet("GetLookupCodeGroups/All")] //without pagination
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetLookupCodeGroupsAll()
+        {
+            try
+            {
+                var lookupCodeGroupsDb = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(trackChanges: false);
+                var lookupCodeGroupsDto = _mapper.Map<IEnumerable<LookupCodeGroupDto>>(lookupCodeGroupsDb);
+
+                return Ok(lookupCodeGroupsDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de realizar la busqueda de lookupCodeGroups (All), aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de realizar la busqueda de lookupCodeGroups (All)");
+            }
+        }
+
 
         [HttpGet("{id:guid}", Name ="LookupCodeGroupById")]
         public async Task<IActionResult> GetLookupCodeGroup(Guid id)
@@ -56,7 +92,7 @@ namespace Sicotyc.Controllers
             }           
         }
 
-        [HttpGet("collection/({ids})", Name = "LookupCodeGroupCollection")]
+        [HttpGet("collection({ids})", Name = "LookupCodeGroupCollection")]
         public async Task<IActionResult> GetLookupCodeGroupCollection(
             [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids)
         {
@@ -270,6 +306,20 @@ namespace Sicotyc.Controllers
                         return NotFound();
                     }
 
+                    // 1.- Primero verificar si tiene Lookup Codes Asociados
+                    var lookupCodes = await _repository.LookupCode.GetLookupCodesAsync(id, trackChanges: false);
+                    if (lookupCodes.Any())
+                    {
+                        // 2.- Borrar los Lookup Codes asociados
+                        foreach (var item in lookupCodes)
+                        {
+                            _repository.LookupCode.DeleteLookupCode(item);
+                        }
+                        await _repository.SaveAsync();
+
+                    }                    
+                    
+                    // 3.- Borrar el Lookup Code Group
                     _repository.LookupCodeGroup.DeleteLookupCodeGroup(lookupCodeGroup);
                     await _repository.SaveAsync();
 

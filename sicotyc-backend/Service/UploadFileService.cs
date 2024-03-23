@@ -58,9 +58,9 @@ namespace Service
 
         public async Task<bool> DeleteImageAsync(string type, string rootPath, string fileName)
         {
-            
             string oldPath = Path.Combine(rootPath, "Uploads", type!, fileName);
             this.DeleteImage(oldPath);
+            await Task.Delay(100);
             return true;
         }
 

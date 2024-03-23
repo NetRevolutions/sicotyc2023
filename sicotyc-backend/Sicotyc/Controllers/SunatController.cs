@@ -55,9 +55,9 @@ namespace Sicotyc.Controllers
                     "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 |
                                                        SecurityProtocolType.Tls12;
-                //string[] arrResultadoValidarImagenCaptcha = await ValidateCatchaImage(cliente, 5);
-                //if (arrResultadoValidarImagenCaptcha[0] == "1")
-                if (true)
+                string[] arrResultadoValidarImagenCaptcha = await ValidateCatchaImage(cliente, 5);
+                if (arrResultadoValidarImagenCaptcha[0] == "1")
+                //if (true)
                 {
                     var lClaveValor = new List<KeyValuePair<string, string>>()
                     {
@@ -250,8 +250,8 @@ namespace Sicotyc.Controllers
             return respuesta;
         }
         private string[] ExtraerContenidoEntreTag(string cadena, int posicion, string nombreInicio, string nombreFin, StringComparison reglaComparacion = StringComparison.OrdinalIgnoreCase)
-        {
-            string[] arrRespuesta = null;
+        {            
+            List<string> arrRespuesta = new List<string>();
             int posicionInicio = cadena.IndexOf(nombreInicio, posicion, reglaComparacion);
             if (posicionInicio > -1)
             {
@@ -260,13 +260,12 @@ namespace Sicotyc.Controllers
                 if (posFin > -1)
                 {
                     posicion = posFin + nombreFin.Length;
-                    arrRespuesta = new string[2];
-                    arrRespuesta[0] = posicion.ToString();
-                    arrRespuesta[1] = cadena.Substring(posicionInicio, posFin - posicionInicio);
+                    arrRespuesta.Add(posicion.ToString());
+                    arrRespuesta.Add(cadena.Substring(posicionInicio, posFin - posicionInicio));                    
                 }
             }
 
-            return arrRespuesta;
+            return arrRespuesta.ToArray();
         }
 
         private DatosRUC ObtenerDatos(string contenidoHTML)

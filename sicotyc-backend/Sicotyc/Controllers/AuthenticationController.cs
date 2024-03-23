@@ -449,7 +449,7 @@ namespace Sicotyc.Controllers
                         Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
                         userDto.Ruc = company.Ruc;
 
-                        return Ok(userDto);
+                        return Ok(new { data =  userDto });
                     }
                 }
                 catch (Exception ex)
@@ -690,7 +690,7 @@ namespace Sicotyc.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"Se produjo un error al intentar leer el token {token}");
+                _logger.LogError($"Se produjo un error al intentar leer el token {token}, para mayor detalles: {ex.Message}");
                 throw;
             }
 

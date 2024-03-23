@@ -2,6 +2,7 @@
 using Contracts;
 using Entities.DataTransferObjects;
 using Entities.Exceptions;
+using Entities.RequestFeatures;
 using Service.Contracts;
 
 namespace Service
@@ -19,11 +20,9 @@ namespace Service
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<LookupCodeGroupDto>> GetAllLookupCodeGroupsAsync(bool trackChanges)
+        public async Task<IEnumerable<LookupCodeGroupDto>> GetAllLookupCodeGroupsAsync(LookupCodeGroupParameters lookupCodeGroupParameters, bool trackChanges)
         {
-            var lookupCodeGroups = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(trackChanges);
-
-            //var lookupCodeGroupsDto = lookupCodeGroups.Select(l => new LookupCodeGroupDto(l.Id, l.Name ?? "")).ToList();
+            var lookupCodeGroups = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(lookupCodeGroupParameters, trackChanges);            
 
             var lookupCodeGroupsDto = _mapper.Map<IEnumerable<LookupCodeGroupDto>>(lookupCodeGroups);
             return lookupCodeGroupsDto;

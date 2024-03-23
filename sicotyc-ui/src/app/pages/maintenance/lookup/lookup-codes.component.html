@@ -1,0 +1,111 @@
+<div class="row animated fadeIn fast">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <label for="lookupCodeGroup" class="col-sm-2 control-label">Lookup Code Group</label>
+                    <div class="col-sm-4">
+                        <div class="input-group" id="lookupCodeGroup">
+                            <select class="form-control">
+                                <option value="">Seleccione</option>
+                                <option value="71B0316A-9831-499A-B9BB-08DA70AE70ED">TIPO DE PAGO PEAJE</option>
+                                <option value="CDA56E87-1B44-4625-9F19-AC7EB282A9B7">CLAIMS PERMITIDOS</option>
+                                <option value="E4D10BC8-A160-4A9D-BC87-C94CF849E14C">TIPO DE EMPRESA</option>
+                                <option value="C6ED82D5-4A24-464B-BEBD-F33C0B7F7D80">TIPO DE SERVICIO</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </div>    
+</div>
+<div class="row animated fadeIn fast">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <input type="text"
+                        class="form-control"
+                        placeholder="Buscar lookup code...">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row animated fadeIn fast">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4 class="alert-heading">Cargando</h4>
+            <i class="fa fa-spin fa-refresh fa-2x"></i>
+            <p class="mb-0">Por favor espere</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-8">
+                        <h4 class="card-title">Lookup Codes</h4>
+                        <h6 class="card-subtitle">Lookup Codes asociados a ...</h6>
+                    </div>
+                    <div class="col">
+                        <div class="text-right">
+                            <a class="btn btn-primary"
+                            [routerLink]="'/mantenimientos/lookupCodeGroups/{{lcgIdSelected}}/lookupCodes/new'">
+                                <i class="fa fa-plus-circle"></i> 
+                                Crear Lookup Code
+                            </a>
+                        </div>
+                    </div>
+                </div>                
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nombre / Codigo</th>
+                                <th>Valor</th>
+                                <th>Orden</th>                                
+                                <th class="text-nowrap">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>                                
+                                <td>USERNAME</td>
+                                <td>UserName</td>
+                                <td>1</td>                                
+                                <td class="text-nowrap">
+                                    <a href="#" data-toggle="tooltip" data-original-title="Editar"> <i class="fa fa-pencil text-inverse m-r-10"></i> </a>
+                                    <a href="#" data-toggle="tooltip" data-original-title="Borrar"> <i class="fa fa-close text-danger"></i> </a>
+                                </td>
+                            </tr>
+                            <tr>                                
+                                <td>FIRSTNAME</td>
+                                <td>FirstName</td>
+                                <td>2</td>                                
+                                <td class="text-nowrap">
+                                    <a href="#" data-toggle="tooltip" data-original-title="Editar"> <i class="fa fa-pencil text-inverse m-r-10"></i> </a>
+                                    <a href="#" data-toggle="tooltip" data-original-title="Borrar"> <i class="fa fa-close text-danger"></i> </a>
+                                </td>
+                            </tr>
+                            <tr>                                
+                                <td>LASTNAME</td>
+                                <td>LastName</td>
+                                <td>3</td>                                
+                                <td class="text-nowrap">
+                                    <a href="#" data-toggle="tooltip" data-original-title="Editar"> <i class="fa fa-pencil text-inverse m-r-10"></i> </a>
+                                    <a href="#" data-toggle="tooltip" data-original-title="Borrar"> <i class="fa fa-close text-danger"></i> </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-secondary">Anteriores</button>
+                &nbsp;
+                <button class="btn btn-secondary">Siguientes</button>
+            </div>
+        </div>
+    </div>
+</div>

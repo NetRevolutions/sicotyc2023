@@ -1,8 +1,6 @@
 ﻿using Entities.Models;
-using System.Reflection;
-using System.Text;
-using System.Linq.Dynamic.Core;
 using Repository.Extensions.Utility;
+using System.Linq.Dynamic.Core;
 
 namespace Repository.Extensions
 {

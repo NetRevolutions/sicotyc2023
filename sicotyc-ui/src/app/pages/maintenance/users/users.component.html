@@ -4,6 +4,7 @@
             <div class="card-body">
                 <input type="text"
                         class="form-control"
+                        name="searchUser"
                         placeholder="Buscar usuario..."
                         (keyup)="search( txtSearchTerm.value )"
                         #txtSearchTerm>
@@ -28,8 +29,22 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Total de Usuarios ({{ totalUsers }})</h4>
-                <h6 class="card-subtitle">Usuarios registrados en la aplicacion</h6>
+                <div class="row">
+                    <div class="col-8">
+                        <h4 class="card-title">Total de Usuarios ({{ totalUsers }})</h4>
+                        <h6 class="card-subtitle">Usuarios registrados en la aplicacion</h6>
+                    </div>
+                    <!-- Habilitado solo para super-usuarios -->
+                    <!-- <div class="col">
+                        <div class="text-right">
+                            <a class="btn btn-primary"
+                               routerLink="/mantenimientos/users/new">
+                                <i class="fa fa-user-o"></i> 
+                                Crear Usuario
+                            </a>
+                        </div>
+                    </div> -->
+                </div>                
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
@@ -39,7 +54,8 @@
                                 <th class="w100">Usuario</th>
                                 <th>Nombre</th>
                                 <th>Apellidos</th>
-                                <th class="w200">Roles</th>                                
+                                <th class="w100">Ruc</th>                                
+                                <th class="w200">Roles</th>
                                 <th class="text-nowrap w100">Acciones</th>
                             </tr>
                         </thead>
@@ -56,15 +72,17 @@
                                 <td>{{user.userName}}</td>
                                 <td>{{user.firstName}}</td>
                                 <td>{{user.lastName}}</td>
+                                <td>{{user.ruc}}</td>
                                 <td>
                                     <select multiple class="form-control" [(ngModel)]="user.roles" (ngModelChange)="onSelectedValues(user)" >
                                         <option value="Administrator">Administrator</option>
                                         <option value="Manager">Manager</option>
                                         <option value="Member">Member</option>
                                     </select>
-                                </td>
+                                </td>                                
                                 <td class="text-nowrap text-center">
-                                    <a data-toggle="tooltip" 
+                                    <a [routerLink]="['/mantenimientos', 'users', user.id]"
+                                        data-toggle="tooltip" 
                                         data-original-title="Editar"
                                         class="cursor"
                                         > 

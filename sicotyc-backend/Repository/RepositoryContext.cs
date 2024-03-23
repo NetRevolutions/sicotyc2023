@@ -32,5 +32,6 @@ namespace Repository
         public DbSet<CompanyType>? CompanyTypes { get; set; }
         public DbSet<CompanyCompanyType>? CompanyCompanyTypes { get; set; }
         public DbSet<UserCompany>? UserCompanies { get; set;}
+        public DbSet<UserDetail>? UserDetail { get; set; }
     }
 }

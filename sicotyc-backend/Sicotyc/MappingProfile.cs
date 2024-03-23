@@ -25,6 +25,10 @@ namespace Sicotyc
             CreateMap<User, UserDto>();
             CreateMap<User, SearchResultDto>()
                     .ForMember(d => d.Name, opt => opt.MapFrom(o => o.FirstName + " " + o.LastName));
+            CreateMap<LookupCodeGroup, SearchResultDto>()
+                    .ForMember(d => d.Name, opt => opt.MapFrom(o => o.Name));
+            CreateMap<LookupCode, SearchResultDto>()
+                    .ForMember(d => d.Name, opt => opt.MapFrom(o => o.LookupCodeName));
 
         }
     }
