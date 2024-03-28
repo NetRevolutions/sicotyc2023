@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { delay } from 'rxjs/operators';
+import { EnumLookupCodeGroups } from 'src/app/enum/enums.enum';
+import { ILookupCode } from 'src/app/interfaces/lookup.interface';
 
 import { User } from 'src/app/models/user.model';
 
@@ -16,8 +18,9 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class UserComponent implements OnInit{
   public userForm: FormGroup;
-
+  public userDetailForm: FormGroup;
   public userSelected?: User;
+  public typeOfDocuments: ILookupCode[] = [];
 
   constructor(private fb: FormBuilder,
               private userService: UserService,
@@ -26,13 +29,16 @@ export class UserComponent implements OnInit{
               private activatedRoute: ActivatedRoute) {
 
     this.userForm = this.fb.group({});
-    
+    this.userDetailForm = this.fb.group({});    
   }
 
   ngOnInit(): void {
 
     this.activatedRoute.params
-      .subscribe( ({ id }) => this.loadUser( id ));
+      .subscribe( ({ id }) => {
+        this.loadUser( id );
+        this.loadTypeOfDocuments();
+      });
     
     this.userForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -41,12 +47,13 @@ export class UserComponent implements OnInit{
       lastName: ['', [Validators.required, Validators.minLength(3)]],
       ruc: ['', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]]
     });
-    
-    this.lookupService.getLookupCodeGroups(0, 49)
-    .subscribe((resp: any) => {
-      console.log(resp);
-    })
-    
+
+    this.userDetailForm = this.fb.group({
+      dateOfBirth: [''],
+      address: [''],
+      documentType: [''],
+      documentNumber: ['']
+    });
   }
 
   loadUser(id: string) {
@@ -72,5 +79,12 @@ export class UserComponent implements OnInit{
 
   saveUser(){
     console.log('pending');
+  }
+
+  loadTypeOfDocuments() {
+    this.lookupService.getLookupCodesByLCGNameALL(EnumLookupCodeGroups.TIPO_DOCUMENTO)
+    .subscribe(resp => {
+      this.typeOfDocuments = resp.data;
+    });    
   }
 }

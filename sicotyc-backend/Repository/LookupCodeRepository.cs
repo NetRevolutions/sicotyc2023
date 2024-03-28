@@ -15,24 +15,32 @@ namespace Repository
         }
 
         public async Task<PagedList<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, LookupCodeParameters lookupCodeParameters, bool trackChanges)
-        {            
-            var lookupCodes = await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges)
+        {
+            var lookupCodes = new List<LookupCode>();
+            if (!String.IsNullOrEmpty(lookupCodeParameters.SearchTerm))
+            {
+                lookupCodes = await FindAll(trackChanges)
+                    .Where(lc => lc.LookupCodeGroupId.Equals(lookupCodeGroupId) &&
+                                 (lc.LookupCodeValue.Contains(lookupCodeParameters.SearchTerm) ||
+                                 lc.LookupCodeName.Contains(lookupCodeParameters.SearchTerm)))
+                    .OrderBy(o => o.LookupCodeOrder)
+                    .ToListAsync();
+            }
+            else {
+                lookupCodes = await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges)
                 .Search(lookupCodeParameters.SearchTerm)
                 .Sort(lookupCodeParameters.OrderBy)
-                //.OrderBy(lc => lc.LookupCodeOrder)
-                //.Skip((lookupCodeParameters.PageNumber -1) * lookupCodeParameters.PageSize)
-                //.Take(lookupCodeParameters.PageSize)
                 .ToListAsync();
+            }
 
-            //var count = await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges).CountAsync();
-
-            //return new PagedList<LookupCode>(lookupCodes, lookupCodeParameters.PageNumber, lookupCodeParameters.PageSize, count);
             return PagedList<LookupCode>
                 .ToPagedList(lookupCodes, lookupCodeParameters.PageNumber, lookupCodeParameters.PageSize);
         }
+        
 
         public async Task<IEnumerable<LookupCode>> GetLookupCodesAsync(Guid lookupCodeGroupId, bool trackChanges) =>
             await FindByCondition(e => e.LookupCodeGroupId.Equals(lookupCodeGroupId), trackChanges)
+            .OrderBy(o => o.LookupCodeOrder)
             .ToListAsync();
 
         public async Task<LookupCode> GetLookupCodeAsync(Guid lookupCodeGroupId, Guid id, bool trackChanges) =>

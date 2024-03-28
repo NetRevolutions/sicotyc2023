@@ -114,6 +114,12 @@ namespace Sicotyc.Controllers
 
         }
 
+        [HttpGet("existsLookupCodeGroup/{name}")]
+        public async Task<IActionResult> ExistsLookupCodeGroup(string name) { 
+            var existsLCG = await _repository.LookupCodeGroup.ExistsLookupCodeGroupAsync(name, trackChanges: false);
+            return Ok(existsLCG);
+        }
+
         [HttpPost]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> CreateLookupCodeGroup([FromBody] LookupCodeGroupForCreationDto lookupCodeGroup) 
@@ -316,7 +322,6 @@ namespace Sicotyc.Controllers
                             _repository.LookupCode.DeleteLookupCode(item);
                         }
                         await _repository.SaveAsync();
-
                     }                    
                     
                     // 3.- Borrar el Lookup Code Group

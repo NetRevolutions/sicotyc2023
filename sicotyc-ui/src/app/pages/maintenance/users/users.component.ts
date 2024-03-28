@@ -4,6 +4,9 @@ import Swal from 'sweetalert2';
 // Model
 import { User } from 'src/app/models/user.model';
 
+// Interfaces
+import { IPagination } from 'src/app/interfaces/pagination.interface';
+
 // Services
 import { SearchesService } from 'src/app/services/searches.service';
 import { UserService } from 'src/app/services/user.service';
@@ -18,10 +21,13 @@ import { Subscription, delay } from 'rxjs';
   ]
 })
 export class UsersComponent implements OnInit, OnDestroy{
-  public totalUsers: number = 0;
   public users: User[] = [];
   public usersTemp: User[] = [];
-  public from: number = 0;
+  public pagination: IPagination = {
+    pageNumber: 1,
+    pageSize: 5,
+    totalItems: 0
+  };
   public loading: boolean = true;
   public useSearch: boolean = false;
   public imgSubs: Subscription = new Subscription();
@@ -49,28 +55,22 @@ export class UsersComponent implements OnInit, OnDestroy{
 
   loadUsers() {
     this.loading = true;
-    this.userService.loadUsers(this.from)
+    this.userService.loadUsers(this.pagination)
     .subscribe( (resp: any) => {
-      this.totalUsers = resp.pagination.totalCount;
+      this.pagination.pageSize = resp.pagination.pageSize;
+      this.pagination.pageNumber = resp.pagination.pageNumber;
+      this.pagination.totalItems = resp.pagination.totalCount;
       this.users = resp.data;
       this.usersTemp = resp.data;
       this.loading = false;      
       //console.log(this.users);
     });
-  }
+  };  
 
-  changePage(value: number) {
-    this.from += value;
-
-    if (this.from < 0) {
-      this.from = 0
-    }
-    else if (this.from >= this.totalUsers ) {
-      this.from -= value;
-    }
-
+  changePage(pageNumber: number) {
+    this.pagination.pageNumber = pageNumber;
     this.loadUsers();
-  };
+  }
 
   search(searchTerm: string) {
     if (searchTerm.length == 0 ) {

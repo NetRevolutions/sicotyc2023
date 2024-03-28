@@ -28,6 +28,12 @@ namespace Repository
             await FindByCondition(e => e.Name != string.Empty, trackChanges)
                 .ToListAsync();
 
+        public async Task<bool> ExistsLookupCodeGroupAsync(string lookupCodeGroupName, bool trackChanges) {
+
+            var lookupCodeGroups = await GetAllLookupCodeGroupsAsync(trackChanges = false);
+            return lookupCodeGroups.Any(f => f.Name.Trim().ToLower() == lookupCodeGroupName.Trim().ToLower());            
+
+        }
 
         public async Task<LookupCodeGroup> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges) => 
             await FindByCondition(l => l.Id.Equals(lookupCodeGroupId), trackChanges)            

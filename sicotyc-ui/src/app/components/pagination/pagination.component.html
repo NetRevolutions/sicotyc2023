@@ -1,0 +1,5 @@
+<div class="pagination">
+    <button *ngIf="currentPage > 1" (click)="onPageChange(currentPage - 1)">Anterior</button>
+    <button *ngFor="let page of range()" [class.active]="currentPage === page" (click)="onPageChange(page)">{{ page }}</button>
+    <button *ngIf="currentPage < totalPages()" (click)="onPageChange(currentPage + 1)">Siguiente</button>
+</div>

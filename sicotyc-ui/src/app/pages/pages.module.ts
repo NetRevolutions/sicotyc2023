@@ -24,7 +24,6 @@ import { UsersComponent } from './maintenance/users/users.component';
 import { MaintenanceComponent } from './maintenance/maintenance.component';
 import { UserComponent } from './maintenance/users/user.component';
 import { LookupCodeGroupsComponent } from './maintenance/lookup/lookup-code-groups.component';
-import { LookupCodeGroupComponent } from './maintenance/lookup/lookup-code-group.component';
 import { LookupCodesComponent } from './maintenance/lookup/lookup-codes.component';
 import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component';
 
@@ -44,7 +43,6 @@ import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component'
     MaintenanceComponent,
     UserComponent,
     LookupCodeGroupsComponent,
-    LookupCodeGroupComponent,
     LookupCodesComponent,
     LookupCodeComponent,
     

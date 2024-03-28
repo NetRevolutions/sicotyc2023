@@ -11,6 +11,7 @@ import { RegisterForm } from '../interfaces/register-form.interface';
 import { LoginForm } from '../interfaces/login-form.interface';
 
 import { User } from '../models/user.model';
+import { IPagination } from '../interfaces/pagination.interface';
 
 const base_url = environment.base_url;
 
@@ -117,8 +118,8 @@ export class UserService {
     return this.http.put(`${base_url}/authentication/user/${this.uid}`, data, this.headers)
   };
 
-  loadUsers( from: number = 0) {
-    const url = `${base_url}/authentication/users?pageNumber=${from}`;
+  loadUsers( pagination: IPagination) {
+    const url = `${base_url}/authentication/users?pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
     return this.http.get(url, this.headers)
       .pipe(
         map((resp: any) => {

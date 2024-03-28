@@ -7,6 +7,7 @@ namespace Contracts
     {
         Task<PagedList<LookupCodeGroup>> GetAllLookupCodeGroupsAsync(LookupCodeGroupParameters lookupCodeGroupParameters,  bool trackChanges);
         Task<IEnumerable<LookupCodeGroup>> GetAllLookupCodeGroupsAsync(bool trackChanges);
+        Task<bool> ExistsLookupCodeGroupAsync(string lookupCodeGroupName, bool trackChanges);
         Task<LookupCodeGroup> GetLookupCodeGroupAsync(Guid lookupCodeGroupId, bool trackChanges);
         Task<LookupCodeGroup> GetLookupCodeGroupByNameAsync(string name, bool trackChanges);
 

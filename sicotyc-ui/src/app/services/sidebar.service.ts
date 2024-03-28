@@ -33,7 +33,7 @@ export class SidebarService {
       submenu: [
         { title: 'Usuarios', url: '/mantenimientos/users' },
         { title: 'Lookup Code Groups', url: '/mantenimientos/lookupCodeGroups'},
-        { title: 'Lookup Codes', url: '/mantenimientos/lookupCodeGroups/all/lookupCodes'}         
+        { title: 'Lookup Codes', url: '/mantenimientos/lookupCodeGroups/lookupCodes'}         
       ]
     },
     {

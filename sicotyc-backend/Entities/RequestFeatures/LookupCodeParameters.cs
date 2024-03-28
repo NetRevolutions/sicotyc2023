@@ -4,7 +4,7 @@
     {
         public LookupCodeParameters()
         {
-            OrderBy = "lookupCodeName";
+            OrderBy = "lookupCodeOrder ASC";
         }
         public string SearchTerm { get; set; }
     }

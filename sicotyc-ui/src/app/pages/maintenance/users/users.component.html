@@ -31,7 +31,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-8">
-                        <h4 class="card-title">Total de Usuarios ({{ totalUsers }})</h4>
+                        <h4 class="card-title">Total de Usuarios ({{ pagination.totalItems }})</h4>
                         <h6 class="card-subtitle">Usuarios registrados en la aplicacion</h6>
                     </div>
                     <!-- Habilitado solo para super-usuarios -->
@@ -101,9 +101,14 @@
                     </table>
                 </div>
                 <div *ngIf="txtSearchTerm.value.length === 0">
-                    <button (click)="changePage(-5)" class="btn btn-secondary">Anteriores</button>
+                    <app-pagination
+                        [totalItems]="pagination.totalItems"
+                        [itemsPerPage]="pagination.pageSize"
+                        (paginaCambiada)="changePage($event)"                >                    
+                    </app-pagination>
+                    <!-- <button (click)="changePage(-5)" class="btn btn-secondary">Anteriores</button>
                     &nbsp;
-                    <button (click)="changePage(5)" class="btn btn-secondary">Siguientes</button>
+                    <button (click)="changePage(5)" class="btn btn-secondary">Siguientes</button> -->
                 </div>
             </div>
         </div>

@@ -4,7 +4,7 @@ export interface IRegisterLookupCodeGroup {
 };
 
 export interface IUpdateLookupCodeGroup {
-    lookupCodeGroupId: string,
+    lookupCodeGroupId?: string,
     lookupCodeGroupName: string,
     lookupCodes?: ILookupCode[]
 };

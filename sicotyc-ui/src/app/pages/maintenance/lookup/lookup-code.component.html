@@ -1,1 +1,66 @@
-<p>lookup-code works!</p>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Lookup Code</h4>
+                <h6 class="card-subtitle">{{subtitle}}</h6>
+                <form class="form-horizontal p-t-20"
+                    [formGroup]="lookupCodeForm"
+                    (submit)="save()">
+                    <div class="form-group row">
+                        <label for="lookupCodeName" class="col-sm-4 control-label">Lookup Code Name*</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-user"></i></div> -->
+                                <input 
+                                    type="text" 
+                                    formControlName="lookupCodeName"
+                                    class="form-control" 
+                                    id="lookupCodeName" 
+                                    placeholder="Lookup Code Name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="lookupCodeValue" class="col-sm-4 control-label">Lookup Code Value*</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-user"></i></div> -->
+                                <input 
+                                    type="text" 
+                                    formControlName="lookupCodeValue"
+                                    class="form-control" 
+                                    id="lookupCodeValue" 
+                                    placeholder="Lookup Code Value">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="lookupCodeOrder" class="col-sm-4 control-label">Lookup Code Order*</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-user"></i></div> -->
+                                <input 
+                                    type="number"
+                                    formControlName="lookupCodeOrder" 
+                                    class="form-control" 
+                                    id="lookupCodeOrder" 
+                                    placeholder="Lookup Code Order">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row m-b-0">
+                        <div class="offset-sm-3 col-sm-9">
+                            <button type="submit"
+                                    [disabled]="lookupCodeForm.invalid"
+                                    class="btn btn-success waves-effect waves-light">
+                                <i class="fa fa-save"></i>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

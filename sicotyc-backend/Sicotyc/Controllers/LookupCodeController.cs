@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Contracts;
 using Entities.DataTransferObjects;
+using Entities.Enum;
 using Entities.Models;
 using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +33,7 @@ namespace Sicotyc.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetLookupCodesForLookupCodeGroup(Guid lookupCodeGroupId, [FromQuery]LookupCodeParameters lookupCodeParameters)
+        public async Task<IActionResult> GetLookupCodesForLookupCodeGroup(Guid lookupCodeGroupId, [FromQuery] LookupCodeParameters lookupCodeParameters)
         {
             var lookupCodeGroup = await _repository.LookupCodeGroup.GetLookupCodeGroupAsync(lookupCodeGroupId, trackChanges: false);
             if (lookupCodeGroup == null)
@@ -43,10 +44,10 @@ namespace Sicotyc.Controllers
 
             var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, lookupCodeParameters, trackChanges: false);
 
-            //Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(lookupCodesFromDb.MetaData));
-            
+
             var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
-            return Ok(new { 
+            return Ok(new
+            {
                 data = lookupCodesDto,
                 pagination = lookupCodesFromDb.MetaData
             });
@@ -65,7 +66,7 @@ namespace Sicotyc.Controllers
             var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroupId, trackChanges: false);
             var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
 
-            return Ok(lookupCodesDto);
+            return Ok(new { data = lookupCodesDto });
         }
 
         [HttpGet("{id:guid}", Name ="GetLookupCodeForLookupCodeGroup")]
@@ -85,7 +86,33 @@ namespace Sicotyc.Controllers
             }
         }
 
-        [HttpGet("collection/({ids})", Name = "LookupCodeCollection")]
+        [HttpGet("LookupCodesByGroupName/{lookupCodeGroupName}")]
+        public async Task<IActionResult> GetLookupCodeForLookupCodeGroupName(string lookupCodeGroupName)
+        { 
+            var lookupCodeGroupsAll = await _repository.LookupCodeGroup.GetAllLookupCodeGroupsAsync(trackChanges: false);
+            var lookupCodeGroup = lookupCodeGroupsAll.Where(lcg => lcg.Name.Trim().ToLower() == lookupCodeGroupName.Trim().ToLower()).FirstOrDefault();
+            if (lookupCodeGroup == null)
+            {
+                _logger.LogError("Parametro lookupCodeGroup es nulo o no existe");
+                return BadRequest("Parametro lookupCodeGroup es nulo o no existe");
+            }
+            else
+            {
+                var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroup.Id, trackChanges: false);
+                if (!lookupCodesFromDb.Any())
+                {
+                    _logger.LogError($"No existen LookupCodes para el LookupCodeGroup { lookupCodeGroupName }");
+                    return NotFound();
+                }
+                else 
+                {
+                    var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
+                    return Ok(new { data = lookupCodesDto });
+                }
+            }
+        }
+
+        [HttpGet("collection({ids})", Name = "LookupCodeCollection")]
         public async Task<IActionResult> GetLookupCodeCollection(
             [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<Guid> ids) { 
             if (ids == null)

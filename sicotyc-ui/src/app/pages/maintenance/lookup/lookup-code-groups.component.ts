@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import Swal from 'sweetalert2';
 
-import { ILookupCodeGroup } from 'src/app/interfaces/lookup.interface';
+import { ILookupCodeGroup, IUpdateLookupCodeGroup } from 'src/app/interfaces/lookup.interface';
+import { IPagination } from 'src/app/interfaces/pagination.interface';
 
 import { LookupService } from 'src/app/services/lookup.service';
 import { SearchesService } from 'src/app/services/searches.service';
@@ -14,8 +15,11 @@ import { SearchesService } from 'src/app/services/searches.service';
 })
 export class LookupCodeGroupsComponent implements OnInit {
   public loading: boolean = true;
-  public from: number = 0;
-  public totals: number = 0;
+  public pagination: IPagination = {
+    pageNumber: 0,
+    pageSize: 5,
+    totalItems: 0
+  };
   public useSearch: boolean = false;
 
   public lookupCodeGroups: ILookupCodeGroup[] = [];
@@ -33,9 +37,11 @@ export class LookupCodeGroupsComponent implements OnInit {
 
   loadLookupCodeGroups() {
     this.loading = true;
-    this.lookupService.getLookupCodeGroups(this.from)
+    this.lookupService.getLookupCodeGroups(this.pagination)
     .subscribe((resp: any) => {
-      this.totals = resp.pagination.totalCount;
+      this.pagination.pageSize = resp.pagination.pageSize;
+      this.pagination.pageNumber = resp.pagination.pageNumber;
+      this.pagination.totalItems = resp.pagination.totalCount;
       this.lookupCodeGroups = resp.data;
       this.lookupCodeGroupsTemp = resp.data;
       this.loading = false;
@@ -65,22 +71,14 @@ export class LookupCodeGroupsComponent implements OnInit {
       }
     });
     return [];
+  }  
+
+  changePage(pageNumber: number) {
+    this.pagination.pageNumber = pageNumber;
+    this.loadLookupCodeGroups();
   }
 
-  changePage(value: number) {
-    this.from += value;
-
-    if(this.from < 0) {
-      this.from = 0;
-    }
-    else if (this.from >= this.totals) {
-      this.from -= value;
-    }
-
-    this.loadLookupCodeGroups();
-  };
-
-  async abrirSweetAlert() {
+  async popupSweetAlertNew() {
     const { value = '' } = await Swal.fire<string>({
       title: 'Crear Lookup Code Group',
       text: 'Ingrese el nombre del Lookup Code Group',
@@ -90,17 +88,55 @@ export class LookupCodeGroupsComponent implements OnInit {
     });
 
     if (value.trim().length > 0 ) {
-      let data: ILookupCodeGroup = {
-        lookupCodeGroupName: value
-      };
-      // TODO: Pendiente validar si el nombre a ingresar ya existe
-      this.lookupService.createLookupCodeGroup( data )
-      .subscribe( (resp: any ) => {
-        //this.lookupCodeGroups.push(resp.data);
-        this.loadLookupCodeGroups();
+      this.lookupService.existsLookupCodeGroup(value.trim())
+      .subscribe((existLCG: boolean) =>{
+        if (!existLCG) {
+          let data: ILookupCodeGroup = {
+            lookupCodeGroupName: value
+          };          
+          this.lookupService.createLookupCodeGroup( data )
+          .subscribe( (resp: any ) => {
+            //this.lookupCodeGroups.push(resp.data);
+            this.loadLookupCodeGroups();
+          });
+        }
+        else {
+          Swal.fire('Error', `El Lookup Code Group ${ value } ya existe, intente otro nombre`, 'error');
+        }
+      });      
+    };
+  };
+
+  async popupSweetAlertEdit(entity: ILookupCodeGroup) {    
+    const { value = '' } = await Swal.fire<string>({
+      title: "Editar Lookup Code Group",
+      text: 'Ingrese el nombre del Lookup Code Group',
+      input: 'text',
+      inputValue: entity.lookupCodeGroupName,
+      inputPlaceholder: 'Nombre del Lookup Code Group',
+      showCancelButton: true
+    });
+
+    if (value.trim().length > 0) {
+      this.lookupService.existsLookupCodeGroup(value.trim())
+      .subscribe((existsLCG: boolean) => {
+        if (!existsLCG){
+          let data: IUpdateLookupCodeGroup = {
+            lookupCodeGroupId: entity.lookupCodeGroupId,
+            lookupCodeGroupName: value
+          };
+          this.lookupService.updateLookupCodeGroup(data)
+          .subscribe((resp: any) => {
+            this.loadLookupCodeGroups();
+            Swal.fire('Actualizado', 'Lookup Code Group actualizado correctamente', 'success');
+          });
+        }
+        else {
+          Swal.fire('Error', `El Lookup Code Group ${ value } ya existe, solo se puede cambiar de nombre y/o eliminar`, 'error');
+        }
       });
     }
-  }
+  };
 
   delete(entity: ILookupCodeGroup) {
     return this.confirmDelete(entity);
