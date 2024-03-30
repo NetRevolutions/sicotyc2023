@@ -13,6 +13,7 @@ import { IPagination } from '../interfaces/pagination.interface';
 
 // Services
 import { UserService } from './user.service';
+import { ValidationErrorsCustomizeService } from './validation-errors-customize.service';
 
 const base_url = environment.base_url;
 
@@ -23,7 +24,8 @@ export class LookupService {
 
   constructor(private http: HttpClient,
               private userService: UserService,
-              private router: Router) { }
+              private router: Router,
+              private validationErrorsCustomize: ValidationErrorsCustomizeService) { }
 
   get token(): string {
 
@@ -51,21 +53,7 @@ export class LookupService {
     return this.http.post(`${ base_url }/lookupCodeGroups`, data, this.headers)
     .pipe(
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })       
     );
   };
@@ -99,21 +87,7 @@ export class LookupService {
     return this.http.put(`${ base_url }/lookupCodeGroups/${formData.lookupCodeGroupId}`, data, this.headers)
     .pipe(
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     );
   };
@@ -134,21 +108,7 @@ export class LookupService {
           }
         }),
         catchError(error => {
-          let errorMessage = 'Ha ocurrido un error.';
-          if (error.status === 404)
-          {
-            errorMessage = 'No se encontraron datos';
-          } 
-          else if (error.status === 500)
-          {
-            errorMessage = 'Error interno del servidor';
-          }
-          else if (error.status === 401)
-          {
-            errorMessage = 'No se encuentra autorizado por el token';
-            this.router.navigateByUrl('/login');
-          }
-          return throwError(() => new Error(errorMessage));
+          return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
         })   
       );
   };
@@ -168,21 +128,7 @@ export class LookupService {
           }
         }),
         catchError(error => {
-          let errorMessage = 'Ha ocurrido un error.';
-          if (error.status === 404)
-          {
-            errorMessage = 'No se encontraron datos';
-          } 
-          else if (error.status === 500)
-          {
-            errorMessage = 'Error interno del servidor';
-          }
-          else if (error.status === 401)
-          {
-            errorMessage = 'No se encuentra autorizado por el token';
-            this.router.navigateByUrl('/login');
-          }
-          return throwError(() => new Error(errorMessage));
+          return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
         })   
       );
   };
@@ -199,21 +145,7 @@ export class LookupService {
           }
         }),
         catchError(error => {
-          let errorMessage = 'Ha ocurrido un error.';
-          if (error.status === 404)
-          {
-            errorMessage = 'No se encontraron datos';
-          } 
-          else if (error.status === 500)
-          {
-            errorMessage = 'Error interno del servidor';
-          }
-          else if (error.status === 401)
-          {
-            errorMessage = 'No se encuentra autorizado por el token';
-            this.router.navigateByUrl('/login');
-          }
-          return throwError(() => new Error(errorMessage));
+          return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
         })   
       );
   };
@@ -224,21 +156,7 @@ export class LookupService {
     .pipe(
       map((resp: boolean) => resp),
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     );
   };
@@ -257,21 +175,7 @@ export class LookupService {
         }
       }),
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     )
   };
@@ -295,21 +199,7 @@ export class LookupService {
     return this.http.post(`${ base_url }/lookupCodeGroups/${formData.lookupCodeGroupId}/lookupCodes`, data, this.headers)
     .pipe(
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     );
   };
@@ -324,21 +214,7 @@ export class LookupService {
     return this.http.put(`${ base_url }/lookupCodeGroups/${formData.lookupCodeGroupId}/lookupCodes/${formData.lookupCodeId}`, data, this.headers)
     .pipe(
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     );
   } ;
@@ -361,21 +237,7 @@ export class LookupService {
         }
       }),
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     )
   };
@@ -415,21 +277,7 @@ export class LookupService {
         }
       }),
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     )
   };
@@ -452,21 +300,7 @@ export class LookupService {
         }
       }),
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     )
   };
@@ -489,21 +323,7 @@ export class LookupService {
         }
       }),
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     )
   };
@@ -513,24 +333,9 @@ export class LookupService {
     return this.http.delete(url, this.headers)
     .pipe(
       catchError(error => {
-        let errorMessage = 'Ha ocurrido un error.';
-        if (error.status === 404)
-        {
-          errorMessage = 'No se encontraron datos';
-        } 
-        else if (error.status === 500)
-        {
-          errorMessage = 'Error interno del servidor';
-        }
-        else if (error.status === 401)
-        {
-          errorMessage = 'No se encuentra autorizado por el token';
-          this.router.navigateByUrl('/login');
-        }
-        return throwError(() => new Error(errorMessage));
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     );
   };
   //#endregion
-
 }

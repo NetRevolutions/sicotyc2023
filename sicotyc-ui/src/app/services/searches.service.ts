@@ -5,6 +5,8 @@ import { throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment.development';
 
+import { ValidationErrorsCustomizeService } from './validation-errors-customize.service';
+
 const base_url = environment.base_url;
 
 @Injectable({
@@ -14,7 +16,8 @@ export class SearchesService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private validationErrorsCustomize: ValidationErrorsCustomizeService
     ) { }
 
   get token(): string {
@@ -39,21 +42,7 @@ export class SearchesService {
             .pipe(
               map((resp: any) => resp.result),
               catchError(error => {
-                let errorMessage = 'Ha ocurrido un error.';
-                if (error.status === 404)
-                {
-                  errorMessage = 'No se encontraron datos';
-                } 
-                else if (error.status === 500)
-                {
-                  errorMessage = 'Error interno del servidor';
-                }
-                else if (error.status === 401)
-                {
-                  errorMessage = 'No se encuentra autorizado por el token';
-                  this.router.navigateByUrl('/login');
-                }
-                return throwError(() => new Error(errorMessage));
+                return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
               })              
             );
   }
@@ -64,21 +53,7 @@ export class SearchesService {
             .pipe(
               map((resp: any) => resp.result),
               catchError(error => {
-                let errorMessage = 'Ha ocurrido un error.';
-                if (error.status === 404)
-                {
-                  errorMessage = 'No se encontraron datos';
-                } 
-                else if (error.status === 500)
-                {
-                  errorMessage = 'Error interno del servidor';
-                }
-                else if (error.status === 401)
-                {
-                  errorMessage = 'No se encuentra autorizado por el token';
-                  this.router.navigateByUrl('/login');
-                }
-                return throwError(() => new Error(errorMessage));
+                return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
               })     
             );
   }

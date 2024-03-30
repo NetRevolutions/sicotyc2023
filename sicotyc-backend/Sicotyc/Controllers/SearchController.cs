@@ -21,7 +21,6 @@ namespace Sicotyc.Controllers
         }
 
         [HttpGet("all/{searchTerm}")]
-        //[ServiceFilter(typeof(ValidationFilterAttribute))]
         [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> SearchAll(string searchTerm) {
             try
@@ -33,37 +32,10 @@ namespace Sicotyc.Controllers
             {
                 _logger.LogError($"Hubo un error al tratar de realizar la busqueda, aca el detalle: {ex.Message}");
                 return BadRequest("Hubo un error al tratar de realizar la busqueda");
-            }
-
-            // Acceder al encabezado "x-token" desde HttpContext
-            //if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
-            //{   
-            //    // Implementamos validacion del token
-            //    var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-            //    if (!resultValidateToken.Success)
-            //    {
-            //        return Unauthorized(resultValidateToken.Message);
-            //    }
-
-            //    try
-            //    {
-            //        var result = await _searchService.SearchAllAsync(searchTerm);
-            //        return Ok(new { result });
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        _logger.LogError($"Hubo un error al tratar de realizar la busqueda, aca el detalle: {ex.Message}");
-            //        return BadRequest("Hubo un error al tratar de realizar la busqueda");
-            //    }                
-            //}
-            //else
-            //{
-            //    return BadRequest("No existe token para realizar esta accion");
-            //}
+            }            
         }
 
         [HttpGet("collection/{collection}/{searchTerm}")]
-        //[ServiceFilter(typeof(ValidationFilterAttribute))]
         [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> SearchByCollection(string collection, string searchTerm) 
         {
@@ -76,32 +48,7 @@ namespace Sicotyc.Controllers
             {
                 _logger.LogError($"Hubo un error al tratar de realizar la busqueda por coleccion, aca el detalle: {ex.Message}");
                 return BadRequest("Hubo un error al tratar de realizar la busqueda por coleccion");
-            }
-
-            // Acceder al encabezado "x-token" desde HttpContext
-            //if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
-            //{
-            //    // Implementamos validacion del token
-            //    var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-            //    if (!resultValidateToken.Success)
-            //    {
-            //        return Unauthorized(resultValidateToken.Message);
-            //    }
-            //    //try
-            //    //{
-            //    //    var result = await _searchService.SearchByCollectionAsync(collection, searchTerm);
-            //    //    return Ok(new { result });
-            //    //}
-            //    //catch (Exception ex)
-            //    //{
-            //    //    _logger.LogError($"Hubo un error al tratar de realizar la busqueda por coleccion, aca el detalle: {ex.Message}");
-            //    //    return BadRequest("Hubo un error al tratar de realizar la busqueda por coleccion");
-            //    //}
-            //}
-            //else
-            //{
-            //    return BadRequest("No existe token para realizar esta accion");
-            //}
+            }            
         }
 
     }

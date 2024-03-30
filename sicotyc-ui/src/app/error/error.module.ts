@@ -6,22 +6,20 @@ import { Error500Component } from './error-500/error-500.component';
 import { Error503Component } from './error-503/error-503.component';
 import { Error404Component } from './error-404/error-404.component';
 
-
-
 @NgModule({
   declarations: [
     Error400Component,
     Error403Component,
     Error404Component,
     Error500Component,
-    Error503Component
+    Error503Component,
   ],
   exports: [
     Error400Component,
     Error403Component,
     Error404Component,
     Error500Component,
-    Error503Component
+    Error503Component,
   ],
   imports: [
     CommonModule
