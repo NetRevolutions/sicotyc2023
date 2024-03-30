@@ -197,6 +197,9 @@ namespace Sicotyc.Controllers
                     Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(uid, false);
                     userDto.Ruc = company.Ruc;
 
+                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(uid, false);
+                    userDto.UserDetail = userDetail;
+
                     return Ok(new { Token = renewToken.Result.Token,
                                     User = userDto,
                                     Roles = renewToken.Result.Roles
@@ -241,8 +244,8 @@ namespace Sicotyc.Controllers
                 }               
 
                 await _userManager.AddToRolesAsync(user, userForRegistration.Roles);
-                
 
+                #region Company
                 // Company section
                 var companyDB = await _repository.Company.GetCompanyByRucAsync(userForRegistration.Ruc, trackChanges: false);
                 if (companyDB == null)
@@ -279,7 +282,21 @@ namespace Sicotyc.Controllers
                     };
                     _repository.UserCompany.CreateUserCompany(userCompany);
                     await _repository.SaveAsync();
-                }                
+                }
+
+                #endregion
+
+                #region User Detail
+                // UserDetail section
+                if (userForRegistration.UserDetail != null)
+                {
+                    var userDetailForCreationDto = _mapper.Map<UserDetailForCreationDto>(userForRegistration.UserDetail);
+                    userDetailForCreationDto.Id = user.Id;
+                    userDetailForCreationDto.CreatedBy = user.Id;
+                    await _repository.SaveAsync();
+                }
+
+                #endregion
 
                 return StatusCode(201); // 201 = Created
 
@@ -307,11 +324,9 @@ namespace Sicotyc.Controllers
 
                 try
                 {
-                    var usersFromDb = await _repository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
+                    var usersFromDb = await _repository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);                    
 
-                    //Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(usersFromDb.MetaData));
-
-                    var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);
+                    var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);                    
 
                     foreach (var userDto in usersDto)
                     {
@@ -323,12 +338,15 @@ namespace Sicotyc.Controllers
                             LastName = userDto.LastName,
                             Email = userDto.Email,
                             UserName = userDto.UserName
-                        }).Result.ToList();
+                        }).Result.ToList();                        
 
                         // Ruc
                         Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
                         userDto.Ruc = company.Ruc;
 
+                        // UserDetail
+                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                        userDto.UserDetail = userDetail;
                     }
 
                     return Ok(new
@@ -358,7 +376,7 @@ namespace Sicotyc.Controllers
             if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue)) 
             {
                 // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                var resultValidateToken = await _authManager.ValidateToken(tokenHeaderValue);
                 if (!resultValidateToken.Success)
                 {
                     return Unauthorized(resultValidateToken.Message);
@@ -372,30 +390,37 @@ namespace Sicotyc.Controllers
                         return BadRequest("Parametro ids es nulo");
                     }
 
-                    var userEntities = await _authManager.GetUsersByIdCollectionAsync(ids, trackChanges: false);
-                    if (ids.Count() != userEntities.Count())
+                    var usersFromDb = await _authManager.GetUsersByIdCollectionAsync(ids, trackChanges: false);
+                    if (ids.Count() != usersFromDb.Count())
                     {
                         _logger.LogError("Algunos de los Ids de la coleccion no son validos");
                         return NotFound();
                     }
 
-                    var usersToReturn = _mapper.Map<IEnumerable<UserDto>>(userEntities);                    
+                    var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);                    
 
-                    usersToReturn.ForEach(async user =>
+                    foreach(var userDto in usersDto)
                     {
-                        var userTemp = userEntities.Find(x =>  x.Id == user.Id);
-                        if (userTemp != null)
+                        //Roles
+                        userDto.Roles = _userManager.GetRolesAsync(new User
                         {
-                            user.Roles = _userManager.GetRolesAsync(userTemp).Result;
-                        }
+                            Id = userDto.Id,
+                            FirstName = userDto.FirstName,
+                            LastName = userDto.LastName,
+                            Email = userDto.Email,
+                            UserName = userDto.UserName
+                        }).Result.ToList();
 
                         // Ruc
-                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(user.Id, false);
-                        user.Ruc = company.Ruc;
-                    });
-                    
+                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, trackChanges: false);
+                        userDto.Ruc = company.Ruc;
 
-                    return Ok(new { data = usersToReturn });
+                        // UserDetail
+                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                        userDto.UserDetail = userDetail;
+                    }
+
+                    return Ok(new { data = usersDto });
                 }
                 catch (Exception ex)
                 {
@@ -449,6 +474,10 @@ namespace Sicotyc.Controllers
                         Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
                         userDto.Ruc = company.Ruc;
 
+                        // UserDetail
+                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                        userDto.UserDetail = userDetail;
+
                         return Ok(new { data =  userDto });
                     }
                 }
@@ -484,7 +513,7 @@ namespace Sicotyc.Controllers
                     var userDB = _userManager.FindByIdAsync(userDto.Id).Result;
                     if (userDB == null)
                     {
-                        _logger.LogError($"Usuario con id: {id} no existe");
+                        _logger.LogError($"Usuario con id: {userDto.Id} no existe");
                         return NotFound();
                     }
                     else
@@ -556,6 +585,42 @@ namespace Sicotyc.Controllers
                                 _repository.UserCompany.CreateUserCompany(userCompany);
                                 await _repository.SaveAsync();
                             }
+
+                            #region UserDetail
+                            UserDetail userDetailDB = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, true);
+                            if (userDetailDB == null)
+                            {
+                                // Validamos si tenemos data de UserDetail para crear
+                                if (userDto.UserDetail != null)
+                                {
+                                    // Creamos data de UserDetail
+                                    //var userDetailForCreationDto = _mapper.Map<UserDetailForCreationDto>(userDto.UserDetail);
+                                    //userDetailForCreationDto.CreatedBy = userDto.Id;
+                                    var userDetailForCreationDto = new UserDetailForCreationDto();
+                                    _mapper.Map(userDto.UserDetail, userDetailForCreationDto);
+                                    userDetailForCreationDto.CreatedBy = id.ToString();
+
+                                    var userDetailDto = _mapper.Map<UserDetail>(userDetailForCreationDto);
+                                    _repository.UserDetail.CreateUserDetail(userDetailDto);
+                                    await _repository.SaveAsync();
+                                }
+                            }
+                            else
+                            {
+                                // Validamos si tenemos data de UserDetail para actualizar
+                                if (userDto.UserDetail != null)
+                                {                                     
+                                    var userDetailForUpdateDto = _mapper.Map<UserDetailForUpdateDto>(userDto.UserDetail);
+                                    userDetailForUpdateDto.UserDetailId = userDetailDB.UserDetailId;
+                                    userDetailForUpdateDto.UpdatedBy = userDto.Id;
+                                    userDetailForUpdateDto.LastUpdatedOn = DateTime.UtcNow;
+
+                                    _mapper.Map(userDetailForUpdateDto, userDetailDB);
+                                    await _repository.SaveAsync();
+                                }
+                            }
+
+                            #endregion
 
                             _logger.LogInfo($"Se actualizo los datos del usuario con el id: {id}");
                             return Ok("Usuario actualizado satisfactoriamente");
@@ -656,6 +721,47 @@ namespace Sicotyc.Controllers
             }            
         }
 
+        #endregion
+
+        #region UserDetails
+        [HttpGet("userDetails/{id:guid}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        private async Task<IActionResult> GetUserDetails(Guid id) 
+        {
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            {
+                // Implementamos validacion del token
+                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
+                if (!resultValidateToken.Success)
+                {
+                    return Unauthorized(resultValidateToken.Message);
+                }
+                try
+                {
+                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(id.ToString(), false);
+                    // TODO: Revisar si se necesita mapper
+
+                    if (userDetail == null)
+                    {
+                        return NoContent();                        
+                    }
+                    else {
+                        return Ok(new { data = userDetail });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Hubo un error al tratar de obtener el detalle del usuario, aca el detalle: {ex.Message}");
+                    return BadRequest("Hubo un error al tratar de obtener el detalle del usuario");
+                }
+            }
+            else
+            {
+                return BadRequest("No existe token para realizar esta accion");
+            }
+
+        }
         #endregion
 
         #region Private methods

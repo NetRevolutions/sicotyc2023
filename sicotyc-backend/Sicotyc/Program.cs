@@ -25,6 +25,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 builder.Services.ConfigureValidationFilterAttribute();
+builder.Services.ConfigureValidationTokenFilter();
 
 //builder.Services.AddControllers(); // Por defecto solo devuelve en text/json
 

@@ -120,8 +120,8 @@
                     <div class="form-group row">
                         <label for="documentType" class="col-sm-4 control-label">Tipo de Documento*</label>
                         <div class="col-sm-8">
-                            <div class="input-group" id="documentType">
-                                <select class="form-control" formControlName="documentType">
+                            <div class="input-group">
+                                <select class="form-control" formControlName="documentType" id="documentType">
                                     <option value="">Seleccione</option>
                                     <option *ngFor="let item of typeOfDocuments" value="{{item.lookupCodeValue}}">{{item.lookupCodeName}}</option>                                    
                                 </select>

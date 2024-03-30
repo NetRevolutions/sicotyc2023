@@ -5,34 +5,143 @@
                 <h4 class="card-title">Mi Perfil de Usuario</h4>
                 <h6 class="card-subtitle">Ajustes</h6>
                 <form class="form p-t-20" 
-                    [formGroup]="profileForm"
-                    (ngSubmit)="updateProfile()">
+                    [formGroup]="profileForm">
 
-                    <div class="form-group">
-                        <label for="exampleInputuname">User Name</label>
-                        <div class="input-group">
-                            <div class="input-group-addon"><i class="ti-user"></i></div>
-                            <input type="text" 
-                                    class="form-control" 
-                                    id="exampleInputuname" 
-                                    placeholder="Nombre de usuario"
-                                    formControlName="userName">
+                    <div class="form-group row">
+                        <label for="userName" class="col-sm-3 control-label">User Name*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-user"></i></div>
+                                <input type="text" 
+                                        class="form-control" 
+                                        id="userName" 
+                                        placeholder="Nombre de usuario"
+                                        formControlName="userName">
+                            </div>
+                        </div>                        
+                    </div>
+                    <div class="form-group row">
+                        <label for="email" class="col-sm-3 control-label">Email address*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-email"></i></div>
+                                <input type="email" 
+                                        class="form-control" 
+                                        id="email" 
+                                        placeholder="Ingrese correo"
+                                        formControlName="email">
+                            </div>
+                        </div>                        
+                    </div> 
+                    <div class="form-group row">
+                        <label for="firstName" class="col-sm-3 control-label">Nombre*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-lock"></i></div>
+                                <input type="text"
+                                        formControlName="firstName" 
+                                        class="form-control" 
+                                        id="firstName" 
+                                        placeholder="Nombres">
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="exampleInputEmail1">Email address</label>
-                        <div class="input-group">
-                            <div class="input-group-addon"><i class="ti-email"></i></div>
-                            <input type="email" 
-                                    class="form-control" 
-                                    id="exampleInputEmail1" 
-                                    placeholder="Ingrese correo"
-                                    formControlName="email">
+                    <div class="form-group row">
+                        <label for="lastName" class="col-sm-3 control-label">Apellidos*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-lock"></i></div>
+                                <input type="text"
+                                        formControlName="lastName" 
+                                        class="form-control" 
+                                        id="lastName" 
+                                        placeholder="Apellidos">
+                            </div>
                         </div>
-                    </div>                    
-                    <button type="submit" 
+                    </div>
+                    <div class="form-group row">
+                        <label for="ruc" class="col-sm-3 control-label">Ruc*</label>
+                        <div class="col-sm-9">
+                            <div class="input-group">
+                                <div class="input-group-addon"><i class="ti-lock"></i></div>
+                                <input type="text"
+                                        formControlName="ruc" 
+                                        class="form-control" 
+                                        id="ruc" 
+                                        placeholder="ruc">
+                            </div>
+                        </div>
+                    </div>                   
+                    <!-- <button type="submit" 
                             class="btn btn-success btn-block waves-effect waves-light m-r-10"
                             [disabled]="profileForm.invalid">
+                        <i class="fa fa-save"></i>
+                        Guardar Cambios
+                    </button> -->
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Usuario Detalle</h4>
+                <h6 class="card-subtitle">Ajustes</h6>
+                <form class="form-horizontal p-t-20"
+                    [formGroup]="userDetailForm"
+                    (ngSubmit)="updateProfile()">
+                    <div class="form-group row">
+                        <label for="dateOfBirth" class="col-sm-4 control-label">Fecha de Nacimiento*</label>
+                        <div class="col-sm-4">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-world"></i></div> -->
+                                <input type="date"   
+                                        formControlName = "dateOfBirth"                                     
+                                        class="form-control" 
+                                        id="dateOfBirth" 
+                                        placeholder="dd/mm/yyyy">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="documentType" class="col-sm-4 control-label">Tipo de Documento*</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <select class="form-control" formControlName="documentType" id="documentType">
+                                    <option value="">Seleccione</option>
+                                    <option *ngFor="let item of typeOfDocuments" value="{{item.lookupCodeValue}}">{{item.lookupCodeName}}</option>                                    
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="documentNumber" class="col-sm-4 control-label">Nro de Documento*</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-world"></i></div> -->
+                                <input type="text"           
+                                        formControlName = "documentNumber"                             
+                                        class="form-control" 
+                                        id="documentNumber" 
+                                        placeholder="Numero de documento">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="address" class="col-sm-4 control-label">Direccion</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <!-- <div class="input-group-addon"><i class="ti-world"></i></div> -->
+                                <textarea formControlName = "address"
+                                        rows="3"                                                                               
+                                        class="form-control" 
+                                        id="address" 
+                                        placeholder="direccion">
+                                </textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" 
+                            class="btn btn-success btn-block waves-effect waves-light m-r-10"
+                            [disabled]="userDetailForm.invalid">
                         <i class="fa fa-save"></i>
                         Guardar Cambios
                     </button>

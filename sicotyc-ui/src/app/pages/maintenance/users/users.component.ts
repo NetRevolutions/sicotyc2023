@@ -163,7 +163,7 @@ export class UsersComponent implements OnInit, OnDestroy{
         confirmButtonText: "Si, procede"
       }).then((result) => {
         if (result.isConfirmed) {
-          this.userService.updateProfile(user)
+          this.userService.updateUser(user)
           .subscribe({
             next: (resp) => {
               //console.log(resp);
@@ -189,7 +189,7 @@ export class UsersComponent implements OnInit, OnDestroy{
       });      
     }
     else {
-      this.userService.updateProfile(user)
+      this.userService.updateUser(user)
       .subscribe({
         next: (resp) => {
           this.loadUsers();

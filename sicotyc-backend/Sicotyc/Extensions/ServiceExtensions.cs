@@ -67,6 +67,9 @@ namespace Sicotyc.Extensions
         public static void ConfigureValidationFilterAttribute(this IServiceCollection services) =>
             services.AddScoped<ValidationFilterAttribute>();
 
+        public static void ConfigureValidationTokenFilter(this IServiceCollection services) =>
+            services.AddScoped<ValidationTokenFilter>();
+
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
             services.AddDbContext<RepositoryContext>(opts =>
                 opts.UseSqlServer(configuration.GetConnectionString("sqlConnection")));
@@ -78,7 +81,7 @@ namespace Sicotyc.Extensions
                 new RateLimitRule
                 { 
                     Endpoint = "*",
-                    Limit = 100,
+                    Limit = 1000,
                     Period = "5m" // 5 minutos
                 }
             };
@@ -128,7 +131,7 @@ namespace Sicotyc.Extensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-
+                    
                     ValidIssuer = jwtSettings.GetSection("validIssuer").Value,
                     ValidAudience = jwtSettings.GetSection("validAudience").Value,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))

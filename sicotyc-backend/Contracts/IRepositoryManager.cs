@@ -7,6 +7,7 @@
         ILookupCodeRepository LookupCode { get; }
         ICompanyRepository Company { get; }
         IUserCompanyRepository UserCompany { get; }
+        IUserDetailRepository UserDetail { get; }
 
         Task SaveAsync();
     }

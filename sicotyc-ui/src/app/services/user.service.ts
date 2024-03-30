@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { catchError, map, tap } from "rxjs/operators";
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import { environment } from 'src/environments/environment.development';
 
@@ -48,7 +48,26 @@ export class UserService {
   }
 
   createUser( formData: RegisterForm) {    
-    return this.http.post(`${base_url}/authentication`, formData);    
+    return this.http.post(`${base_url}/authentication`, formData)
+    .pipe(
+      catchError(error => {
+        let errorMessage = 'Ha ocurrido un error.';
+        if (error.status === 404)
+        {
+          errorMessage = 'No se encontraron datos';
+        } 
+        else if (error.status === 500)
+        {
+          errorMessage = 'Error interno del servidor';
+        }
+        else if (error.status === 401)
+        {
+          errorMessage = 'No se encuentra autorizado por el token';
+          this.router.navigateByUrl('/login');
+        }
+        return throwError(() => new Error(errorMessage));
+      })   
+    );    
   };
 
   loginUser( formData: LoginForm) {
@@ -57,7 +76,24 @@ export class UserService {
                   tap((resp: any) => {
                     localStorage.setItem('token', resp.token);
                     //localStorage.setItem('companyId', resp.companyId);
-                  })
+                  }),
+                  catchError(error => {
+                    let errorMessage = 'Ha ocurrido un error.';
+                    if (error.status === 404)
+                    {
+                      errorMessage = 'No se encontraron datos';
+                    } 
+                    else if (error.status === 500)
+                    {
+                      errorMessage = 'Error interno del servidor';
+                    }
+                    else if (error.status === 401)
+                    {
+                      errorMessage = 'No se encuentra autorizado por el token';
+                      this.router.navigateByUrl('/login');
+                    }
+                    return throwError(() => new Error(errorMessage));
+                  })   
                 )
   };
 
@@ -70,7 +106,26 @@ export class UserService {
 
   getClaims(): any {
     const token = localStorage.getItem('token') || '';
-    return this.http.get(`${base_url}/authentication/claims?token=${token}`);    
+    return this.http.get(`${base_url}/authentication/claims?token=${token}`)
+    .pipe(
+      catchError(error => {
+        let errorMessage = 'Ha ocurrido un error.';
+        if (error.status === 404)
+        {
+          errorMessage = 'No se encontraron datos';
+        } 
+        else if (error.status === 500)
+        {
+          errorMessage = 'Error interno del servidor';
+        }
+        else if (error.status === 401)
+        {
+          errorMessage = 'No se encuentra autorizado por el token';
+          this.router.navigateByUrl('/login');
+        }
+        return throwError(() => new Error(errorMessage));
+      })   
+    );    
   };
 
   getClaimsFromLocalStorage(): any[] {
@@ -82,8 +137,8 @@ export class UserService {
     return this.http.get(`${base_url}/authentication/renewToken`, this.headers)
     .pipe(
       map( (resp: any) => {
-        const { firstName, lastName, userName, email, phoneNumber, img = '', id, ruc } = resp.user;
-        this.user = new User(firstName, lastName, userName, email, '', img, phoneNumber, resp.roles, id, ruc);
+        const { firstName, lastName, userName, email, phoneNumber, img = '', id, ruc, userDetail } = resp.user;
+        this.user = new User(firstName, lastName, userName, email, '', img, phoneNumber, resp.roles, id, ruc, userDetail);
 
         localStorage.setItem('token', resp.token); // Seteamos el token renovado
         return true;
@@ -93,29 +148,28 @@ export class UserService {
   };
 
   
-  updateProfile( data: User
-                      // {
-                      //   id: string, 
-                      //   firstName: string,
-                      //   lastName: string,
-                      //   userName: string,// No actualizar
-                      //   email: string,  
-                      //   phoneNumber: string,
-                      //   roles: Array<string>,
-                      //   ruc: string
-                      // }
-                      ) {   
-    /*                   
-    data.id = this.uid;
-    data.firstName = this.user?.firstName || '';
-    data.lastName = this.user?.lastName || '';
-    //data.userName = this.user?.userName || ''; // No actualizar
-    //data.email = this.user?.email || '';
-    data.phoneNumber = this.user?.phoneNumber || '';
-    data.roles = this.user?.roles || []; // No Actualizar
-    data.ruc = this.user?.ruc || ''; 
-    */
-    return this.http.put(`${base_url}/authentication/user/${this.uid}`, data, this.headers)
+  updateUser( data: User) {
+    const url = `${base_url}/authentication/user/${this.uid}`;
+    return this.http.put(url, data, this.headers)
+    .pipe(
+      catchError(error => {
+        let errorMessage = 'Ha ocurrido un error.';
+        if (error.status === 404)
+        {
+          errorMessage = 'No se encontraron datos';
+        } 
+        else if (error.status === 500)
+        {
+          errorMessage = 'Error interno del servidor';
+        }
+        else if (error.status === 401)
+        {
+          errorMessage = 'No se encuentra autorizado por el token';
+          this.router.navigateByUrl('/login');
+        }
+        return throwError(() => new Error(errorMessage));
+      })   
+    );
   };
 
   loadUsers( pagination: IPagination) {
@@ -124,13 +178,30 @@ export class UserService {
       .pipe(
         map((resp: any) => {
           const users = resp.data.map(
-            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id, user.ruc));
+            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id, user.ruc, user.userDetail));
           
           return { 
             data: users, 
             pagination: resp.pagination
           };
-        })
+        }),
+        catchError(error => {
+          let errorMessage = 'Ha ocurrido un error.';
+          if (error.status === 404)
+          {
+            errorMessage = 'No se encontraron datos';
+          } 
+          else if (error.status === 500)
+          {
+            errorMessage = 'Error interno del servidor';
+          }
+          else if (error.status === 401)
+          {
+            errorMessage = 'No se encuentra autorizado por el token';
+            this.router.navigateByUrl('/login');
+          }
+          return throwError(() => new Error(errorMessage));
+        })   
       )
   };
 
@@ -140,12 +211,29 @@ export class UserService {
       .pipe(
         map((resp: any) => {
           const users = resp.data.map(
-            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id, user.ruc));
+            (user: User) => new User(user.firstName, user.lastName, user.userName, user.email, '', user.img, user.phoneNumber, user.roles, user.id, user.ruc, user.userDetail));
           
           return {
             data: users
           };
-        })
+        }),
+        catchError(error => {
+          let errorMessage = 'Ha ocurrido un error.';
+          if (error.status === 404)
+          {
+            errorMessage = 'No se encontraron datos';
+          } 
+          else if (error.status === 500)
+          {
+            errorMessage = 'Error interno del servidor';
+          }
+          else if (error.status === 401)
+          {
+            errorMessage = 'No se encuentra autorizado por el token';
+            this.router.navigateByUrl('/login');
+          }
+          return throwError(() => new Error(errorMessage));
+        })   
       )
   };
 
@@ -153,12 +241,30 @@ export class UserService {
     const url = `${base_url}/authentication/user/${id}`
     return this.http.get(url, this.headers)
       .pipe(
-        map((resp: any) => {          
-          const user = new User(resp.data.firstName, resp.data.lastName, resp.data.userName, resp.data.email, '', resp.data.img, resp.data.phoneNumber, resp.data.roles, resp.data.id, resp.data.ruc);
+        map((resp: any) => {      
+          const { firstName, lastName, userName, email, phoneNumber, img = '', roles, id, ruc, userDetail } = resp.data;    
+          const user = new User(firstName, lastName, userName, email, '', img, phoneNumber, roles, id, ruc, userDetail);
           return {
             data: user
           };
-        })
+        }),
+        catchError(error => {
+          let errorMessage = 'Ha ocurrido un error.';
+          if (error.status === 404)
+          {
+            errorMessage = 'No se encontraron datos';
+          } 
+          else if (error.status === 500)
+          {
+            errorMessage = 'Error interno del servidor';
+          }
+          else if (error.status === 401)
+          {
+            errorMessage = 'No se encuentra autorizado por el token';
+            this.router.navigateByUrl('/login');
+          }
+          return throwError(() => new Error(errorMessage));
+        })   
       );
   }
 
@@ -166,5 +272,24 @@ export class UserService {
     // console.log('User eliminado');
     const url = `${base_url}/authentication/user/${user.id}`;
     return this.http.delete(url, this.headers)
+    .pipe(
+      catchError(error => {
+        let errorMessage = 'Ha ocurrido un error.';
+        if (error.status === 404)
+        {
+          errorMessage = 'No se encontraron datos';
+        } 
+        else if (error.status === 500)
+        {
+          errorMessage = 'Error interno del servidor';
+        }
+        else if (error.status === 401)
+        {
+          errorMessage = 'No se encuentra autorizado por el token';
+          this.router.navigateByUrl('/login');
+        }
+        return throwError(() => new Error(errorMessage));
+      })   
+    )
   }
 }

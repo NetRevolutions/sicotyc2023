@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Entities.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -22,5 +23,6 @@ namespace Entities.DataTransferObjects
         [Required(ErrorMessage = "El usuario debe de tener el menos un rol")]
         public IEnumerable<string>? Roles { get; set; }
         public string? Ruc { get; set; }
+        public UserDetail? UserDetail { get; set; }
     }
 }

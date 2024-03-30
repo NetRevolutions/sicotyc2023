@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Entities.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -24,5 +25,6 @@ namespace Entities.DataTransferObjects
         public IEnumerable<string>? Roles { get; set; }
         [Required(ErrorMessage = "El RUC de la empresa a la que pertenece es requerido")]
         public string? Ruc { get; set; }
+        public UserDetail? UserDetail { get; set; }
     }
 }

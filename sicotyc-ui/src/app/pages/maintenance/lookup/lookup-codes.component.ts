@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { ILookupCode, ILookupCodeGroup } from 'src/app/interfaces/lookup.interface';
 import { IPagination } from 'src/app/interfaces/pagination.interface';
@@ -29,7 +30,8 @@ export class LookupCodesComponent implements OnInit{
 
   constructor(
     private lookupService: LookupService,
-    private searchService: SearchesService
+    private searchService: SearchesService,
+    private router: Router
   ){};
 
   ngOnInit(): void {
@@ -81,16 +83,22 @@ export class LookupCodesComponent implements OnInit{
 
     let searchKeyTerm = this.lcgIdSelected.toString()+'|'+searchTerm;
     this.searchService.search('LOOKUPCODES', searchKeyTerm)
-    .subscribe((resp: any) => {
-      if (resp.length > 0) {
-        var ids = resp.map((e:any) => e.id)
-
-        this.lookupService.findLookupCodesByIdCollection(this.lcgIdSelected, ids)
-        .subscribe((resp: any) => {          
-          this.lookupCodes = resp.data;
-        });
-      }
-    });
+    .subscribe({
+      next: (resp: any) => {
+        if (resp.length > 0) {
+          var ids = resp.map((e:any) => e.id)
+  
+          this.lookupService.findLookupCodesByIdCollection(this.lcgIdSelected, ids)
+          .subscribe((resp: any) => {          
+            this.lookupCodes = resp.data;
+          });
+        }
+      },
+      error: (err) =>{
+        console.error(err);        
+      },
+      complete: () => { }
+    });    
     return [];
   };
 

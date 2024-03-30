@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Entities.Models;
 
 namespace Entities.DataTransferObjects
 {
@@ -17,5 +13,6 @@ namespace Entities.DataTransferObjects
         public string? PhoneNumber { get; set; }
         public IList<string>? Roles { get; set; }
         public string? Ruc { get; set; }
+        public UserDetail? UserDetail { get; set; }
     }
 }
