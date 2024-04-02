@@ -29,70 +29,53 @@ namespace Sicotyc.Controllers
 
         [HttpPut("{type}/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> UploadFile(string type, Guid id)
         {
-            string[] validFolders = Enum.GetNames(typeof(FolderFileUploadEnum));
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            //string[] validFolders = Enum.GetNames(typeof(FolderFileUploadEnum));
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-                if (!resultValidateToken.Success) {
-                    return Unauthorized(resultValidateToken.Message);
-                }
-                
-                if (!validFolders.Contains(type?.ToUpper()))
+                var fileToUpload = Request.Form.Files[0];
+                if (fileToUpload == null)
                 {
-                    return BadRequest($"No existe una capeta para este tipo de archivo ({type}) a subir");
+                    return BadRequest("No hay ningun archivo seleccionado");
                 }
 
-                try
+                var nameSplit = fileToUpload.FileName.Split('.');
+                var fileExtension = nameSplit[nameSplit.Length - 1];
+
+                string[] validExtensionFiles = Enum.GetNames(typeof(ImageFileExtensionEnum));
+                if (!validExtensionFiles.Contains(fileExtension?.ToUpper()))
                 {
-                    var fileToUpload = Request.Form.Files[0];
-                    if (fileToUpload == null)
-                    {
-                        return BadRequest("No hay ningun archivo seleccionado");
-                    }
-
-                    var nameSplit = fileToUpload.FileName.Split('.');
-                    var fileExtension = nameSplit[nameSplit.Length - 1];
-
-                    string[] validExtensionFiles = Enum.GetNames(typeof(ImageFileExtensionEnum));
-                    if (!validExtensionFiles.Contains(fileExtension?.ToUpper()))
-                    {
-                        return BadRequest($"No es una extension permitida");
-                    }
-
-                    // Generar el nombre del archivo
-                    var fileName = Guid.NewGuid() + "." + fileExtension!.ToString();
-
-                    // Obtener la ruta fisica del directorio raiz del proyecto
-                    string rootPath = _hostingEnvironment.ContentRootPath;
-
-                    // Path para guardar la imagen
-                    var filePath = Path.Combine(rootPath, "Uploads", type!, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await fileToUpload.CopyToAsync(stream);
-
-                        // Actualizar base de datos
-                        await _uploadFileService.UpdateImageAsync(type!, id, rootPath, fileName);
-
-                        // Tenemos que retornar el nombre del archivo creado
-                        return Ok(new { FileName = fileName });                        
-                    }
+                    return BadRequest($"No es una extension permitida");
                 }
-                catch (Exception ex)
+
+                // Generar el nombre del archivo
+                var fileName = Guid.NewGuid() + "." + fileExtension!.ToString();
+
+                // Obtener la ruta fisica del directorio raiz del proyecto
+                string rootPath = _hostingEnvironment.ContentRootPath;
+
+                // Path para guardar la imagen
+                var filePath = Path.Combine(rootPath, "Uploads", type!, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    _logger.LogError($"Hubo un error al tratar de subir la imagen de tipo {type}, aca el detalle: {ex.Message}");
-                    return BadRequest("Hubo un error al tratar de subir la imagen");
-                }                
+                    await fileToUpload.CopyToAsync(stream);
+
+                    // Actualizar base de datos
+                    await _uploadFileService.UpdateImageAsync(type!, id, rootPath, fileName);
+
+                    // Tenemos que retornar el nombre del archivo creado
+                    return Ok(new { FileName = fileName });
+                }
             }
-            else {
-                return BadRequest("No existe token para realizar esta accion");
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de subir la imagen de tipo {type}, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de subir la imagen");
             }
-            
+
         }
 
         [HttpGet("{type}/{imgName}")]

@@ -272,8 +272,7 @@ export class LookupService {
           lookupCodeOrder: lc.lookupCodeOrder
         }));
         return {
-          data: lookupCodes,
-          pagination: resp.pagination
+          data: lookupCodes
         }
       }),
       catchError(error => {
@@ -338,4 +337,12 @@ export class LookupService {
     );
   };
   //#endregion
+
+  //#region Specific LookupCodes
+  getTypeOfDocuments() {
+    return this.getLookupCodesByLCGNameALL(EnumLookupCodeGroups.TIPO_DOCUMENTO);    
+  }
+
+
+  //#region 
 }

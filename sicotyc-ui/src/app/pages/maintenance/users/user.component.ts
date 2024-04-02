@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { delay } from 'rxjs/operators';
+import { delay, map } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 // Enums
@@ -62,6 +62,13 @@ export class UserComponent implements OnInit{
       documentType: [''],
       documentNumber: ['']
     });
+
+    this.lookupService.getTypeOfDocuments()
+    .subscribe({
+      next: (resp) => {console.log(resp.data);},
+      error: (err) => {console.error('ups, ocurrio un error', err);},
+      complete: () => console.info('Operacion completa')
+    })
   };
 
   loadUser(id: string) {

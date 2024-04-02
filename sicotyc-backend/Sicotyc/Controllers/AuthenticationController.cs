@@ -310,415 +310,348 @@ namespace Sicotyc.Controllers
         // Read
         [HttpGet("users")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> GetUsers([FromQuery] UserParameters userParameters)
         {
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-                if (!resultValidateToken.Success)
+                var usersFromDb = await _repository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
+
+                var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);
+
+                foreach (var userDto in usersDto)
                 {
-                    return Unauthorized(resultValidateToken.Message);
-                }                
-
-                try
-                {
-                    var usersFromDb = await _repository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);                    
-
-                    var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);                    
-
-                    foreach (var userDto in usersDto)
+                    // Roles
+                    userDto.Roles = _userManager.GetRolesAsync(new User
                     {
-                        // Roles
-                        userDto.Roles = _userManager.GetRolesAsync(new User
-                        {
-                            Id = userDto.Id,
-                            FirstName = userDto.FirstName,
-                            LastName = userDto.LastName,
-                            Email = userDto.Email,
-                            UserName = userDto.UserName
-                        }).Result.ToList();                        
+                        Id = userDto.Id,
+                        FirstName = userDto.FirstName,
+                        LastName = userDto.LastName,
+                        Email = userDto.Email,
+                        UserName = userDto.UserName
+                    }).Result.ToList();
 
-                        // Ruc
-                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
-                        userDto.Ruc = company.Ruc;
+                    // Ruc
+                    Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
+                    userDto.Ruc = company.Ruc;
 
-                        // UserDetail
-                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
-                        userDto.UserDetail = userDetail;
-                    }
-
-                    return Ok(new
-                    {
-                        data = usersDto,
-                        pagination = usersFromDb.MetaData
-                    });
+                    // UserDetail
+                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                    userDto.UserDetail = userDetail;
                 }
-                catch (Exception ex)
+
+                return Ok(new
                 {
-                    _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuarios, aca el detalle: {ex.Message}");
-                    return BadRequest("Hubo un error al tratar de realizar la busqueda de usuarios");
-                }
+                    data = usersDto,
+                    pagination = usersFromDb.MetaData
+                });
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("No existe token para realizar esta accion");
-            }            
+                _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuarios, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de realizar la busqueda de usuarios");
+            }
         }
 
         // Read Collection
         [HttpGet("users/collection({ids})")]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> GetUsersByIdCollection(
             [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids) {
 
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue)) 
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = await _authManager.ValidateToken(tokenHeaderValue);
-                if (!resultValidateToken.Success)
+                if (ids == null)
                 {
-                    return Unauthorized(resultValidateToken.Message);
+                    _logger.LogError("Parametro ids es nulo");
+                    return BadRequest("Parametro ids es nulo");
                 }
 
-                try
+                var usersFromDb = await _authManager.GetUsersByIdCollectionAsync(ids, trackChanges: false);
+                if (ids.Count() != usersFromDb.Count())
                 {
-                    if (ids == null)
-                    {
-                        _logger.LogError("Parametro ids es nulo");
-                        return BadRequest("Parametro ids es nulo");
-                    }
-
-                    var usersFromDb = await _authManager.GetUsersByIdCollectionAsync(ids, trackChanges: false);
-                    if (ids.Count() != usersFromDb.Count())
-                    {
-                        _logger.LogError("Algunos de los Ids de la coleccion no son validos");
-                        return NotFound();
-                    }
-
-                    var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);                    
-
-                    foreach(var userDto in usersDto)
-                    {
-                        //Roles
-                        userDto.Roles = _userManager.GetRolesAsync(new User
-                        {
-                            Id = userDto.Id,
-                            FirstName = userDto.FirstName,
-                            LastName = userDto.LastName,
-                            Email = userDto.Email,
-                            UserName = userDto.UserName
-                        }).Result.ToList();
-
-                        // Ruc
-                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, trackChanges: false);
-                        userDto.Ruc = company.Ruc;
-
-                        // UserDetail
-                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
-                        userDto.UserDetail = userDetail;
-                    }
-
-                    return Ok(new { data = usersDto });
+                    _logger.LogError("Algunos de los Ids de la coleccion no son validos");
+                    return NotFound();
                 }
-                catch (Exception ex)
+
+                var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersFromDb);
+
+                foreach (var userDto in usersDto)
                 {
-                    _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuarios por coleccion, aca el detalle: {ex.Message}");
-                    return BadRequest("Hubo un error al tratar de realizar la busqueda de usuarios por coleccion");
+                    //Roles
+                    userDto.Roles = _userManager.GetRolesAsync(new User
+                    {
+                        Id = userDto.Id,
+                        FirstName = userDto.FirstName,
+                        LastName = userDto.LastName,
+                        Email = userDto.Email,
+                        UserName = userDto.UserName
+                    }).Result.ToList();
+
+                    // Ruc
+                    Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, trackChanges: false);
+                    userDto.Ruc = company.Ruc;
+
+                    // UserDetail
+                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                    userDto.UserDetail = userDetail;
                 }
+
+                return Ok(new { data = usersDto });
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("No existe token para realizar esta accion");
-            }            
+                _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuarios por coleccion, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de realizar la busqueda de usuarios por coleccion");
+            }
         }
 
         // Read
         [HttpGet("user/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> GetUser(Guid id)
         {
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-                if (!resultValidateToken.Success)
+                var userResult = await _userManager.FindByIdAsync(id.ToString());
+                if (userResult == null)
                 {
-                    return Unauthorized(resultValidateToken.Message);
+                    _logger.LogError($"Usuario con id: {id} no existe");
+                    return NotFound();
                 }
-
-                try
+                else
                 {
-                    var userResult = await _userManager.FindByIdAsync(id.ToString());
-                    if (userResult == null)
+                    var userDto = _mapper.Map<UserDto>(userResult);
+                    // Roles
+                    userDto.Roles = _userManager.GetRolesAsync(new User
                     {
-                        _logger.LogError($"Usuario con id: {id} no existe");
-                        return NotFound();
-                    }
-                    else
-                    {
-                        var userDto = _mapper.Map<UserDto>(userResult);
-                        // Roles
-                        userDto.Roles = _userManager.GetRolesAsync(new User
-                        {
-                            Id = userDto.Id,
-                            FirstName = userDto.FirstName,
-                            LastName = userDto.LastName,
-                            Email = userDto.Email,
-                            UserName = userDto.UserName
-                        }).Result.ToList();
+                        Id = userDto.Id,
+                        FirstName = userDto.FirstName,
+                        LastName = userDto.LastName,
+                        Email = userDto.Email,
+                        UserName = userDto.UserName
+                    }).Result.ToList();
 
-                        // Ruc
-                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
-                        userDto.Ruc = company.Ruc;
+                    // Ruc
+                    Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
+                    userDto.Ruc = company.Ruc;
 
-                        // UserDetail
-                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
-                        userDto.UserDetail = userDetail;
+                    // UserDetail
+                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                    userDto.UserDetail = userDetail;
 
-                        return Ok(new { data =  userDto });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuario, aca el detalle: {ex.Message}");
-                    return BadRequest("Hubo un error al tratar de realizar la busqueda de usuario");
+                    return Ok(new { data = userDto });
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("No existe token para realizar esta accion");
-            }            
+                _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuario, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de realizar la busqueda de usuario");
+            }
         }
 
         // Update
         [HttpPut("user/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserForUpdateDto userDto)
         {
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-                if (!resultValidateToken.Success)
+                var userDB = _userManager.FindByIdAsync(userDto.Id).Result;
+                if (userDB == null)
                 {
-                    return Unauthorized(resultValidateToken.Message);
+                    _logger.LogError($"Usuario con id: {userDto.Id} no existe");
+                    return NotFound();
                 }
-
-                try
+                else
                 {
-                    var userDB = _userManager.FindByIdAsync(userDto.Id).Result;
-                    if (userDB == null)
-                    {
-                        _logger.LogError($"Usuario con id: {userDto.Id} no existe");
-                        return NotFound();
-                    }
-                    else
-                    {
-                        //_mapper.Map(userDto, userDB); // No funciona porque no se puede excluir el Id
+                    //_mapper.Map(userDto, userDB); // No funciona porque no se puede excluir el Id
 
-                        // Modificamos solo las propiedades necesarias
-                        userDB.FirstName = userDto.FirstName != null ? userDto.FirstName : userDB.FirstName;
-                        userDB.LastName = userDto.LastName != null ? userDto.LastName : userDB.LastName;
-                        userDB.Email = userDto.Email != null ? userDto.Email : userDB.Email;
-                        userDB.UserName = userDto.UserName != null ? userDto.UserName : userDB.UserName;
-                        userDB.PhoneNumber = userDto.PhoneNumber != null ? userDto.PhoneNumber : userDB.PhoneNumber;                        
+                    // Modificamos solo las propiedades necesarias
+                    userDB.FirstName = userDto.FirstName != null ? userDto.FirstName : userDB.FirstName;
+                    userDB.LastName = userDto.LastName != null ? userDto.LastName : userDB.LastName;
+                    userDB.Email = userDto.Email != null ? userDto.Email : userDB.Email;
+                    userDB.UserName = userDto.UserName != null ? userDto.UserName : userDB.UserName;
+                    userDB.PhoneNumber = userDto.PhoneNumber != null ? userDto.PhoneNumber : userDB.PhoneNumber;
 
-                        var result = await _userManager.UpdateAsync(userDB);
-                        if (result.Succeeded)
+                    var result = await _userManager.UpdateAsync(userDB);
+                    if (result.Succeeded)
+                    {
+                        // 1.- Delete all roles
+                        var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
+                        await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
+
+                        // 2.- Add the current roles
+                        var currentUserRoles = userDto.Roles;
+                        if (currentUserRoles != null)
                         {
-                            // 1.- Delete all roles
-                            var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
-                            await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
+                            await _userManager.AddToRolesAsync(userDB, currentUserRoles);
+                        }
 
-                            // 2.- Add the current roles
-                            var currentUserRoles = userDto.Roles;
-                            if (currentUserRoles != null)
+                        // Company y UserCompany
+                        // 3.- Buscar el company por ruc
+                        Company companyDB = await _repository.Company.GetCompanyByRucAsync(userDto.Ruc, false);
+                        if (companyDB == null)
+                        {
+                            // 4.- Si no existe... registrar en la tabla company y luego en la tabla userCompany
+                            companyDB = new Company()
                             {
-                                await _userManager.AddToRolesAsync(userDB, currentUserRoles);
-                            }
+                                CompanyId = Guid.NewGuid(),
+                                Ruc = userDto.Ruc,
+                                CreatedBy = userDto.Id
+                            };
+                            _repository.Company.CreateCompany(companyDB);
+                            await _repository.SaveAsync();
 
-                            // Company y UserCompany
-                            // 3.- Buscar el company por ruc
-                            Company companyDB = await _repository.Company.GetCompanyByRucAsync(userDto.Ruc, false);
-                            if (companyDB == null)
+                            // Eliminamos cualquier otro UserCompany asociado al Id del usuario
+                            await _repository.UserCompany.DeleteAllCompaniesAssociatedUserAsync(userDto.Id, false);
+
+                            // Insertamos el nuevo registro en la table UserCompany
+                            UserCompany userCompany = new UserCompany()
                             {
-                                // 4.- Si no existe... registrar en la tabla company y luego en la tabla userCompany
-                                companyDB = new Company() {
-                                    CompanyId = Guid.NewGuid(),
-                                    Ruc = userDto.Ruc,
-                                    CreatedBy = userDto.Id
-                                };
-                                _repository.Company.CreateCompany(companyDB);
-                                await _repository.SaveAsync();
+                                Id = userDto.Id,
+                                CompanyId = companyDB.CompanyId
+                            };
 
-                                // Eliminamos cualquier otro UserCompany asociado al Id del usuario
-                                await _repository.UserCompany.DeleteAllCompaniesAssociatedUserAsync(userDto.Id, false);
+                            _repository.UserCompany.CreateUserCompany(userCompany);
+                            await _repository.SaveAsync();
 
-                                // Insertamos el nuevo registro en la table UserCompany
-                                UserCompany userCompany = new UserCompany() { 
-                                    Id = userDto.Id,
-                                    CompanyId = companyDB.CompanyId
-                                };
-
-                                _repository.UserCompany.CreateUserCompany(userCompany);
-                                await _repository.SaveAsync();
-
-                            }
-                            else 
-                            {
-
-                                // 5.- Si existe... obtener el id y actualizar en la tabla userCompany
-                                // Eliminamos cualquier otro UserCompany asociado al Id del usuario
-                                await _repository.UserCompany.DeleteAllCompaniesAssociatedUserAsync(userDto.Id, false);
-
-                                // Insertamos el nuevo registro en la table UserCompany
-                                UserCompany userCompany = new UserCompany()
-                                {
-                                    Id = userDto.Id,
-                                    CompanyId = companyDB.CompanyId
-                                };
-
-                                _repository.UserCompany.CreateUserCompany(userCompany);
-                                await _repository.SaveAsync();
-                            }
-
-                            #region UserDetail
-                            UserDetail userDetailDB = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, true);
-                            if (userDetailDB == null)
-                            {
-                                // Validamos si tenemos data de UserDetail para crear
-                                if (userDto.UserDetail != null)
-                                {
-                                    // Creamos data de UserDetail
-                                    //var userDetailForCreationDto = _mapper.Map<UserDetailForCreationDto>(userDto.UserDetail);
-                                    //userDetailForCreationDto.CreatedBy = userDto.Id;
-                                    var userDetailForCreationDto = new UserDetailForCreationDto();
-                                    _mapper.Map(userDto.UserDetail, userDetailForCreationDto);
-                                    userDetailForCreationDto.CreatedBy = id.ToString();
-
-                                    var userDetailDto = _mapper.Map<UserDetail>(userDetailForCreationDto);
-                                    _repository.UserDetail.CreateUserDetail(userDetailDto);
-                                    await _repository.SaveAsync();
-                                }
-                            }
-                            else
-                            {
-                                // Validamos si tenemos data de UserDetail para actualizar
-                                if (userDto.UserDetail != null)
-                                {                                     
-                                    var userDetailForUpdateDto = _mapper.Map<UserDetailForUpdateDto>(userDto.UserDetail);
-                                    userDetailForUpdateDto.UserDetailId = userDetailDB.UserDetailId;
-                                    userDetailForUpdateDto.UpdatedBy = userDto.Id;
-                                    userDetailForUpdateDto.LastUpdatedOn = DateTime.UtcNow;
-
-                                    _mapper.Map(userDetailForUpdateDto, userDetailDB);
-                                    await _repository.SaveAsync();
-                                }
-                            }
-
-                            #endregion
-
-                            _logger.LogInfo($"Se actualizo los datos del usuario con el id: {id}");
-                            return Ok("Usuario actualizado satisfactoriamente");
                         }
                         else
                         {
-                            _logger.LogError($"Hubo un error al intentar actualizar el usuario con id: {id}");
-                            return BadRequest(result.Errors);
+
+                            // 5.- Si existe... obtener el id y actualizar en la tabla userCompany
+                            // Eliminamos cualquier otro UserCompany asociado al Id del usuario
+                            await _repository.UserCompany.DeleteAllCompaniesAssociatedUserAsync(userDto.Id, false);
+
+                            // Insertamos el nuevo registro en la table UserCompany
+                            UserCompany userCompany = new UserCompany()
+                            {
+                                Id = userDto.Id,
+                                CompanyId = companyDB.CompanyId
+                            };
+
+                            _repository.UserCompany.CreateUserCompany(userCompany);
+                            await _repository.SaveAsync();
                         }
+
+                        #region UserDetail
+                        UserDetail userDetailDB = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, true);
+                        if (userDetailDB == null)
+                        {
+                            // Validamos si tenemos data de UserDetail para crear
+                            if (userDto.UserDetail != null)
+                            {
+                                // Creamos data de UserDetail
+                                //var userDetailForCreationDto = _mapper.Map<UserDetailForCreationDto>(userDto.UserDetail);
+                                //userDetailForCreationDto.CreatedBy = userDto.Id;
+                                var userDetailForCreationDto = new UserDetailForCreationDto();
+                                _mapper.Map(userDto.UserDetail, userDetailForCreationDto);
+                                userDetailForCreationDto.CreatedBy = id.ToString();
+
+                                var userDetailDto = _mapper.Map<UserDetail>(userDetailForCreationDto);
+                                _repository.UserDetail.CreateUserDetail(userDetailDto);
+                                await _repository.SaveAsync();
+                            }
+                        }
+                        else
+                        {
+                            // Validamos si tenemos data de UserDetail para actualizar
+                            if (userDto.UserDetail != null)
+                            {
+                                var userDetailForUpdateDto = _mapper.Map<UserDetailForUpdateDto>(userDto.UserDetail);
+                                userDetailForUpdateDto.UserDetailId = userDetailDB.UserDetailId;
+                                userDetailForUpdateDto.UpdatedBy = userDto.Id;
+                                userDetailForUpdateDto.LastUpdatedOn = DateTime.UtcNow;
+
+                                _mapper.Map(userDetailForUpdateDto, userDetailDB);
+                                await _repository.SaveAsync();
+                            }
+                        }
+
+                        #endregion
+
+                        _logger.LogInfo($"Se actualizo los datos del usuario con el id: {id}");
+                        return Ok("Usuario actualizado satisfactoriamente");
+                    }
+                    else
+                    {
+                        _logger.LogError($"Hubo un error al intentar actualizar el usuario con id: {id}");
+                        return BadRequest(result.Errors);
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Hubo un error al tratar de actualizar al usuario con id: {id}, aca el detalle: {ex.Message}");
-                    return BadRequest($"Hubo un error al tratar de actualizar al usuario con id: {id}");
-                }                              
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("No hay token en la peticion");
-            }            
+                _logger.LogError($"Hubo un error al tratar de actualizar al usuario con id: {id}, aca el detalle: {ex.Message}");
+                return BadRequest($"Hubo un error al tratar de actualizar al usuario con id: {id}");
+            }
         }
 
         // Delete        
         [HttpDelete("user/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-                if (!resultValidateToken.Success)
+                var userDB = await _userManager.FindByIdAsync(id.ToString());
+
+                if (userDB == null)
                 {
-                    return Unauthorized(resultValidateToken.Message);
+                    return NotFound("Usuario no encontrado");
                 }
 
-                try
+                // 1.- Delete all roles
+                var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
+                await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
+
+                // 2.- Delete image user
+                if (userDB.Img != null)
                 {
-                    var userDB = await _userManager.FindByIdAsync(id.ToString());
+                    // Obtener la ruta fisica del directorio raiz del proyecto
+                    string rootPath = _hostingEnvironment.ContentRootPath;
+                    await this._uploadService.DeleteImageAsync("USERS", rootPath, userDB.Img);
 
-                    if (userDB == null)
-                    {
-                        return NotFound("Usuario no encontrado");
-                    }
-
-                    // 1.- Delete all roles
-                    var userDBRoles = _userManager.GetRolesAsync(userDB).Result;
-                    await _userManager.RemoveFromRolesAsync(userDB, userDBRoles);
-
-                    // 2.- Delete image user
-                    if (userDB.Img != null)
-                    {
-                        // Obtener la ruta fisica del directorio raiz del proyecto
-                        string rootPath = _hostingEnvironment.ContentRootPath;
-                        await this._uploadService.DeleteImageAsync("USERS", rootPath, userDB.Img);
-
-                    }
-
-                    // 3.- Delete from userCompany
-                    var companyId = await _repository.UserCompany.GetCompanyIdByUserIdAsync(userDB.Id, false);
-                    if (companyId != null)
-                    {
-                        UserCompany userCompany = new UserCompany() { 
-                            Id = userDB.Id,
-                            CompanyId = companyId,
-                        };
-
-                        _repository.UserCompany.DeleteUserCompany(userCompany);
-                        await _repository.SaveAsync();
-                    }
-
-                    // 4.- Delete user
-                    var result = await _userManager.DeleteAsync(userDB);
-
-                    if (result.Succeeded)
-                    {
-
-                        _logger.LogInfo($"Usuario con el id: {id} fue eliminado exitosamente");
-                        return Ok("Usuario eliminado exitosamente");
-                    }
-                    else
-                    {
-                        _logger.LogError($"Hubo un error al intentar eliminar al usuario con el id: {id}, aca el detalle: {result.Errors}");
-                        return BadRequest(result.Errors);
-                    }
                 }
-                catch (Exception ex)
+
+                // 3.- Delete from userCompany
+                var companyId = await _repository.UserCompany.GetCompanyIdByUserIdAsync(userDB.Id, false);
+                if (companyId != null)
                 {
-                    _logger.LogError($"Hubo un error al tratar de eliminar al usuario con id: {id}, aca el detalle: {ex.Message}");
-                    return BadRequest($"Hubo un error al tratar de eliminar al usuario con id: {id}");
+                    UserCompany userCompany = new UserCompany()
+                    {
+                        Id = userDB.Id,
+                        CompanyId = companyId,
+                    };
+
+                    _repository.UserCompany.DeleteUserCompany(userCompany);
+                    await _repository.SaveAsync();
+                }
+
+                // 4.- Delete user
+                var result = await _userManager.DeleteAsync(userDB);
+
+                if (result.Succeeded)
+                {
+
+                    _logger.LogInfo($"Usuario con el id: {id} fue eliminado exitosamente");
+                    return Ok("Usuario eliminado exitosamente");
+                }
+                else
+                {
+                    _logger.LogError($"Hubo un error al intentar eliminar al usuario con el id: {id}, aca el detalle: {result.Errors}");
+                    return BadRequest(result.Errors);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("No hay token en la peticion");
-            }            
+                _logger.LogError($"Hubo un error al tratar de eliminar al usuario con id: {id}, aca el detalle: {ex.Message}");
+                return BadRequest($"Hubo un error al tratar de eliminar al usuario con id: {id}");
+            }
         }
 
         #endregion
@@ -726,39 +659,27 @@ namespace Sicotyc.Controllers
         #region UserDetails
         [HttpGet("userDetails/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         private async Task<IActionResult> GetUserDetails(Guid id) 
         {
-            // Acceder al encabezado "x-token" desde HttpContext
-            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            try
             {
-                // Implementamos validacion del token
-                var resultValidateToken = _authManager.ValidateToken(tokenHeaderValue).Result;
-                if (!resultValidateToken.Success)
-                {
-                    return Unauthorized(resultValidateToken.Message);
-                }
-                try
-                {
-                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(id.ToString(), false);
-                    // TODO: Revisar si se necesita mapper
+                UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(id.ToString(), false);
+                // TODO: Revisar si se necesita mapper
 
-                    if (userDetail == null)
-                    {
-                        return NoContent();                        
-                    }
-                    else {
-                        return Ok(new { data = userDetail });
-                    }
-                }
-                catch (Exception ex)
+                if (userDetail == null)
                 {
-                    _logger.LogError($"Hubo un error al tratar de obtener el detalle del usuario, aca el detalle: {ex.Message}");
-                    return BadRequest("Hubo un error al tratar de obtener el detalle del usuario");
+                    return NoContent();
+                }
+                else
+                {
+                    return Ok(new { data = userDetail });
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("No existe token para realizar esta accion");
+                _logger.LogError($"Hubo un error al tratar de obtener el detalle del usuario, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de obtener el detalle del usuario");
             }
 
         }

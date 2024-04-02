@@ -23,6 +23,12 @@ namespace Repository
 
             modelBuilder.Entity<CompanyCompanyType>()
                 .HasKey(e => new { e.CompanyId, e.CompanyTypeId});
+
+            modelBuilder.Entity<DriverLicense>()
+                .HasKey(u => new { u.DriverId, u.LicenseNumber, u.LicenseType });
+
+            modelBuilder.Entity<DriverWhareHouse>()
+                .HasKey(u => new { u.DriverId, u.WhareHouseId });
             
         }
 
@@ -32,6 +38,14 @@ namespace Repository
         public DbSet<CompanyType>? CompanyTypes { get; set; }
         public DbSet<CompanyCompanyType>? CompanyCompanyTypes { get; set; }
         public DbSet<UserCompany>? UserCompanies { get; set;}
-        public DbSet<UserDetail>? UserDetail { get; set; }
+        public DbSet<UserDetail>? UserDetails { get; set; }
+        public DbSet<ComplementTransport>? ComplementTransports { get; set; }
+        public DbSet<Driver>? Drivers { get; set; }
+        public DbSet<TransportDetail>? TransportDetails { get; set; }
+        public DbSet<UnitTransport>? UnitTransports { get; set; }
+        public DbSet<WhareHouse>? WhareHouses { get; set; }
+        public DbSet<DriverLicense>? DriverLicenses { get; set; }
+        public DbSet<DriverWhareHouse>? DriverWhareHouses { get; set; }
+
     }
 }
