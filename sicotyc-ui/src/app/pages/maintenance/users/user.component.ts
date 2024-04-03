@@ -63,12 +63,12 @@ export class UserComponent implements OnInit{
       documentNumber: ['']
     });
 
-    this.lookupService.getTypeOfDocuments()
-    .subscribe({
-      next: (resp) => {console.log(resp.data);},
-      error: (err) => {console.error('ups, ocurrio un error', err);},
-      complete: () => console.info('Operacion completa')
-    })
+    // this.lookupService.getTypeOfDocuments()
+    // .subscribe({
+    //   next: (resp) => {console.log(resp.data);},
+    //   error: (err) => {console.error('ups, ocurrio un error', err);},
+    //   complete: () => console.info('Se obtuvo los tipos de documentos satisfactoriamente')
+    // })
   };
 
   loadUser(id: string) {

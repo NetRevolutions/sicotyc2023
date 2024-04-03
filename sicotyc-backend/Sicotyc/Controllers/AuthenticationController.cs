@@ -4,7 +4,6 @@ using Entities.DataTransferObjects;
 using Entities.Enum;
 using Entities.Models;
 using Entities.RequestFeatures;
-using FluentEmail.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
@@ -55,6 +54,7 @@ namespace Sicotyc.Controllers
 
         [HttpPost("change-password")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePassword model)
         { 
             var user = await _userManager.FindByIdAsync(model.Id);
@@ -71,7 +71,7 @@ namespace Sicotyc.Controllers
                 // Puedes agregar aquí cualquier lógica adicional después de cambiar la contraseña
                 // await _signInManager.SignInAsync(user, isPersistent: false);
                 _logger.LogInfo($"Se cambio la contraseña para el usuario con el id: {model.Id}");
-                return Ok("Contraseña cambiada exitosamente.");
+                return Ok("Contraseña cambiada exitosamente. ");
             }
             else
             {

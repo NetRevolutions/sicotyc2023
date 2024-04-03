@@ -341,7 +341,19 @@ export class LookupService {
   //#region Specific LookupCodes
   getTypeOfDocuments() {
     return this.getLookupCodesByLCGNameALL(EnumLookupCodeGroups.TIPO_DOCUMENTO);    
-  }
+  };
+
+  getTypeOfCompanies() {
+    return this.getLookupCodesByLCGNameALL(EnumLookupCodeGroups.TIPO_DE_EMPRESA);
+  };
+
+  getTypeOfTolls() {
+    return this.getLookupCodesByLCGNameALL(EnumLookupCodeGroups.TIPO_PAGO_PEAJE);
+  };
+
+  getTypeOfServices() {
+    return this.getLookupCodesByLCGNameALL(EnumLookupCodeGroups.TIPO_DE_SERVICIO);
+  };
 
 
   //#region 

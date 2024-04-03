@@ -13,6 +13,7 @@ import { LoginForm } from '../interfaces/login-form.interface';
 import { User } from '../models/user.model';
 import { IPagination } from '../interfaces/pagination.interface';
 import { ValidationErrorsCustomizeService } from './validation-errors-customize.service';
+import { IChangePassword } from '../interfaces/changePassword.interface';
 
 const base_url = environment.base_url;
 
@@ -170,7 +171,7 @@ export class UserService {
           return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
         })   
       );
-  }
+  };
 
   deleteUser(user: User) {
     // console.log('User eliminado');
@@ -181,5 +182,20 @@ export class UserService {
         return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     )
-  }
+  };
+
+  changePassword(formData: IChangePassword) {
+    const data = {
+      ...formData,
+      id: this.uid
+    };
+    
+    const url = `${base_url}/authentication/change-password`;
+    return this.http.post(url, data, this.headers)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    )
+  };
 }

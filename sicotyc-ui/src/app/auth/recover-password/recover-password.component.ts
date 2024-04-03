@@ -3,9 +3,16 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-recover-password',
   templateUrl: './recover-password.component.html',
-  styles: [
-  ]
+  styleUrls: [ '../login/login.component.css']
 })
 export class RecoverPasswordComponent {
+
+  constructor() {
+
+  }
+
+  resetPassword() {
+
+  }
 
 }
