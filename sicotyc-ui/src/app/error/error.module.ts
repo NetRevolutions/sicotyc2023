@@ -5,6 +5,7 @@ import { Error403Component } from './error-403/error-403.component';
 import { Error500Component } from './error-500/error-500.component';
 import { Error503Component } from './error-503/error-503.component';
 import { Error404Component } from './error-404/error-404.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { Error404Component } from './error-404/error-404.component';
     Error503Component,
   ],
   imports: [
-    CommonModule
+    CommonModule,
+    RouterModule
   ]
 })
 export class ErrorModule { }

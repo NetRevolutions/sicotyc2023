@@ -72,7 +72,7 @@ namespace Sicotyc.Extensions
 
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
             services.AddDbContext<RepositoryContext>(opts =>
-                opts.UseSqlServer(configuration.GetConnectionString("sqlConnection")));
+                opts.UseSqlServer(configuration.GetConnectionString("sqlConnection"))/*, ServiceLifetime.Scoped*/);
 
         public static void ConfigureRateLimitingOptions(this IServiceCollection services)
         {
@@ -98,6 +98,18 @@ namespace Sicotyc.Extensions
 
         public static void ConfigureIdentity(this IServiceCollection services)
         {
+            //services.AddIdentity<User, IdentityRole>(o => { 
+            //    o.Password.RequireDigit = true;
+            //    o.Password.RequireLowercase = false;
+            //    o.Password.RequireUppercase = false;
+            //    o.Password.RequireNonAlphanumeric = false;
+            //    o.Password.RequiredLength = 10;
+            //    o.User.RequireUniqueEmail = true;
+            //})
+            //.AddEntityFrameworkStores<RepositoryContext>()
+            //.AddDefaultTokenProviders();
+
+
             var builder = services.AddIdentityCore<User>(o =>
             {
                 o.Password.RequireDigit = true;
@@ -110,7 +122,7 @@ namespace Sicotyc.Extensions
 
             builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
             builder.AddEntityFrameworkStores<RepositoryContext>().AddDefaultTokenProviders();
-            
+
         }
 
         public static void ConfigureJWT(this IServiceCollection services, IConfiguration configuration)

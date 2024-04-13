@@ -28,6 +28,7 @@ import { UserComponent } from './maintenance/users/user.component';
 import { LookupCodeGroupsComponent } from './maintenance/lookup/lookup-code-groups.component';
 import { LookupCodesComponent } from './maintenance/lookup/lookup-codes.component';
 import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component';
+import { SearchComponent } from './search/search.component';
 
 
 const routes: Routes = [
@@ -44,6 +45,7 @@ const routes: Routes = [
             { path: 'promesas', component: PromesasComponent, data: {title: 'Promesas' } },
             { path: 'rxjs', component: RxjsComponent, data: {title: 'rxJS' } },
             { path: 'account-settings', component: AccountSettingsComponent, data: {title: 'Account Settings' } },
+            { path: 'search/:term', component: SearchComponent, data: {title: 'Busquedas'}},
             { path: 'profile', component: ProfileComponent, data: {title: 'Perfil de Usuario' } },
         ] 
     },

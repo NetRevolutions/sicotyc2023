@@ -8,7 +8,7 @@ import { HttpClientModule} from '@angular/common/http'
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { LockScreenComponent } from './lock-screen/lock-screen.component';
-import { RecoverPasswordComponent } from './recover-password/recover-password.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { TermsConditionsPopupComponent } from './terms-conditions-popup/terms-conditions-popup.component';
 
@@ -19,7 +19,7 @@ import { TermsConditionsPopupComponent } from './terms-conditions-popup/terms-co
     LoginComponent,
     RegisterComponent,
     LockScreenComponent,
-    RecoverPasswordComponent,
+    ResetPasswordComponent,
     ChangePasswordComponent,
     TermsConditionsPopupComponent,
   ],
@@ -27,7 +27,7 @@ import { TermsConditionsPopupComponent } from './terms-conditions-popup/terms-co
     LoginComponent,
     RegisterComponent,
     LockScreenComponent,
-    RecoverPasswordComponent,
+    ResetPasswordComponent,
     TermsConditionsPopupComponent,
   ],
   imports: [

@@ -37,20 +37,15 @@ export class LoginComponent implements OnInit{
           localStorage.setItem('username', this.loginForm.get('userName')?.value);
         } else {
           localStorage.removeItem('username');
-        }
-
-        //console.log(this.userService.getClaims());
+        };        
         this.userService.getClaims()
-        .subscribe((result: any) => {
-          //console.log(result.claims); 
+        .subscribe((result: any) => {           
           // Seteamos los valores en el local storage
+          console.log('result', result);
           if (result.claims != null) {
             localStorage.setItem('claims', JSON.stringify(result.claims));
           };          
         })
-        
-        
-        //console.log(this.userService.getClaims());
         //Navegamos al Dashboard
         this.router.navigateByUrl('/');
       },

@@ -13,7 +13,8 @@ import { LoginForm } from '../interfaces/login-form.interface';
 import { User } from '../models/user.model';
 import { IPagination } from '../interfaces/pagination.interface';
 import { ValidationErrorsCustomizeService } from './validation-errors-customize.service';
-import { IChangePassword } from '../interfaces/changePassword.interface';
+import { IChangePassword } from '../interfaces/change-password.interface';
+import { IResetPassword } from '../interfaces/reset-password.interface';
 
 const base_url = environment.base_url;
 
@@ -30,7 +31,6 @@ export class UserService {
               private validationErrorsCustomize: ValidationErrorsCustomizeService) { }
 
   get token(): string {
-
     return localStorage.getItem('token') || '';
   };
 
@@ -64,7 +64,7 @@ export class UserService {
     .pipe(
       tap((resp: any) => {
         localStorage.setItem('token', resp.token);
-        //localStorage.setItem('companyId', resp.companyId);
+        localStorage.setItem('menu', JSON.stringify(resp.menu));
       }),
       catchError(error => {
         return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
@@ -75,6 +75,7 @@ export class UserService {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('claims');
+    localStorage.removeItem('menu');
     //localStorage.removeItem('companyId');
     this.router.navigateByUrl('/login');
   }
@@ -102,12 +103,52 @@ export class UserService {
         this.user = new User(firstName, lastName, userName, email, '', img, phoneNumber, resp.roles, id, ruc, userDetail);
 
         localStorage.setItem('token', resp.token); // Seteamos el token renovado
+        localStorage.setItem('menu', JSON.stringify(resp.menu));
         return true;
       }),     
       catchError(error => of(false)) // Con el of retorno un Observable de tipo boolean (false)
     );
   };
 
+  getResetToken(id?: string) {
+    const url = `${base_url}/authentication/token-reset-password`;
+    const data = { id: id };
+    return this.http.post(url, data)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    );
+  };
+
+  changePassword(formData: IChangePassword) {
+    const data = {
+      ...formData,
+      id: this.uid
+    };
+    
+    const url = `${base_url}/authentication/change-password`;
+    return this.http.post(url, data, this.headers)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    )
+  };
+
+  resetPassword(formData: IResetPassword) {    
+    const data = {
+      ...formData
+    };
+
+    const url = `${base_url}/authentication/reset-password`;
+    return this.http.post(url, data)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    )
+  };
   
   updateUser( data: User) {
     const url = `${base_url}/authentication/user/${this.uid}`;
@@ -173,6 +214,23 @@ export class UserService {
       );
   };
 
+  getUserByEmail(email: string) {
+    const url = `${base_url}/authentication/user/email/${email}`
+    return this.http.get(url)
+      .pipe(
+        map((resp: any) => {      
+          const { firstName, lastName, userName, email, phoneNumber, img = '', roles, id, ruc, userDetail } = resp.data;    
+          const user = new User(firstName, lastName, userName, email, '', img, phoneNumber, roles, id, ruc, userDetail);
+          return {
+            data: user
+          };
+        }),
+        catchError(error => {
+          return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+        })   
+      );
+  };
+
   deleteUser(user: User) {
     // console.log('User eliminado');
     const url = `${base_url}/authentication/user/${user.id}`;
@@ -184,18 +242,14 @@ export class UserService {
     )
   };
 
-  changePassword(formData: IChangePassword) {
-    const data = {
-      ...formData,
-      id: this.uid
-    };
-    
-    const url = `${base_url}/authentication/change-password`;
-    return this.http.post(url, data, this.headers)
+  getMenuOptions(user: User) {
+    const url = `${base_url}/authentication/menu-options/user/${user.id}`;
+    return this.http.get(url)
     .pipe(
       catchError(error => {
         return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })
     )
   };
+  
 }

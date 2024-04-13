@@ -26,6 +26,7 @@ import { UserComponent } from './maintenance/users/user.component';
 import { LookupCodeGroupsComponent } from './maintenance/lookup/lookup-code-groups.component';
 import { LookupCodesComponent } from './maintenance/lookup/lookup-codes.component';
 import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component';
+import { SearchComponent } from './search/search.component';
 
 
 @NgModule({
@@ -45,6 +46,7 @@ import { LookupCodeComponent } from './maintenance/lookup/lookup-code.component'
     LookupCodeGroupsComponent,
     LookupCodesComponent,
     LookupCodeComponent,
+    SearchComponent,
     
   ],
   exports: [

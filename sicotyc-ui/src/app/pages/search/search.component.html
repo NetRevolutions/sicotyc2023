@@ -1,0 +1,141 @@
+<div class="row animated fadeIn fast">
+    <div class="col-4">
+        <div class="card">
+            <div class="card-body">
+                <h3>Usuarios</h3>
+
+                <div class="alert alert-info animated fadeIn fast"
+                    *ngIf="users.length === 0">
+                  <p class="mb-0">
+                      No hay usuario con ese término
+                  </p>
+                </div>
+                <div class="table-responsive"
+                    *ngIf="users.length > 0">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Avatar</th>
+                                <th>Nombre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let user of users"
+                                class="animated fadeIn fast">
+                                <td>
+                                    <img [src]="user.img | img:'users'" 
+                                         class="w75"/>
+                                </td>
+                                <td>{{ user.firstName }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card">
+            <div class="card-body">
+                <h3>LookupCodeGroups</h3>
+
+                <div class="alert alert-info animated fadeIn fast"
+                    *ngIf="lookupCodeGroups.length === 0">
+                  <p class="mb-0">
+                      No hay Lookup Code Groups con ese término
+                  </p>
+                </div>
+                <div class="table-responsive"
+                    *ngIf="lookupCodeGroups.length > 0">
+                    <table class="table">
+                        <thead>
+                            <tr>                                
+                                <th>Nombre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let lookupCodeGroup of lookupCodeGroups"
+                                class="animated fadeIn fast">                                
+                                <td>{{ lookupCodeGroup.lookupCodeGroupName }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card">
+            <div class="card-body">
+                <h3>LookupCodes</h3>
+
+                <div class="alert alert-info animated fadeIn fast"
+                    *ngIf="lookupCodes.length === 0">
+                  <p class="mb-0">
+                      No hay Lookup Codes con ese término
+                  </p>
+                </div>
+                <div class="table-responsive"
+                    *ngIf="lookupCodeGroups.length > 0">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>LookupCodeGroup</th>                                
+                                <th>LookupCode</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let lookupCode of lookupCodes"
+                                class="animated fadeIn fast">                                
+                                <td>{{ lookupCode.lookupCodeGroupId }}</td>
+                                <td>{{ lookupCode.lookupCodeName }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card">
+            <div class="card-body">
+                <h3>Unidades</h3>
+
+                <div class="alert alert-info animated fadeIn fast"
+                    *ngIf="transports.length === 0">
+                  <p class="mb-0">
+                      No hay Unidades con ese término
+                  </p>
+                </div>
+                <div class="table-responsive"
+                    *ngIf="transports.length > 0">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Avatar</th>
+                                <th>Empresa</th>                                
+                                <th>Placa</th>
+                                <th>Nombre</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let transport of transports"
+                                class="animated fadeIn fast">                                
+                                <td>
+                                    <img [src]="transport.img | img:'transports'" 
+                                         class="w75"/>
+                                </td>
+                                <td>{{ transport.companyName }}</td>
+                                <td>{{ transport.plate }}</td>
+                                <td>{{ transport.name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

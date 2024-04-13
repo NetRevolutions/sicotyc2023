@@ -8,6 +8,7 @@
         ICompanyRepository Company { get; }
         IUserCompanyRepository UserCompany { get; }
         IUserDetailRepository UserDetail { get; }
+        IRepositoryStoreProcedure RepositoryStoreProcedure { get; }
 
         Task SaveAsync();
     }

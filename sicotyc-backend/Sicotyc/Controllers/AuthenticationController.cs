@@ -6,6 +6,7 @@ using Entities.Models;
 using Entities.RequestFeatures;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Repository;
 using Service.Contracts;
 using Sicotyc.ActionFilters;
 using Sicotyc.ModelBinders;
@@ -25,6 +26,8 @@ namespace Sicotyc.Controllers
         private readonly IRepositoryManager _repository;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IUploadFileService _uploadService;
+        //private readonly IRepositoryStoreProcedure _repositoryStoreProcedure;
+        
         public AuthenticationController(ILoggerManager logger, IMapper mapper,
             UserManager<User> userManager, IAuthenticationManager authManager, 
             IRepositoryManager repository, IWebHostEnvironment hostingEnvironment,
@@ -37,6 +40,7 @@ namespace Sicotyc.Controllers
             _repository = repository;
             _hostingEnvironment = hostingEnvironment;
             _uploadService = uploadFileService;
+            //_repositoryStoreProcedure = repositoryStoreProcedure;            
         }
 
         [HttpPost("login")]
@@ -47,9 +51,15 @@ namespace Sicotyc.Controllers
             {
                 _logger.LogWarn($"{nameof(Authenticate)}: Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
                 return Unauthorized("Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
-            }            
+            }   
+            
+            var userDB = await _userManager.FindByNameAsync(user.UserName);
 
-            return Ok(new { Token = await _authManager.CreateTokenAsync()/*, CompanyId = companyId*/ });
+            return Ok(new 
+            { 
+                Token = await _authManager.CreateTokenAsync(),
+                Menu = await GetMenuItems(userDB.Id)
+            });
         }
 
         [HttpPost("change-password")]
@@ -80,11 +90,11 @@ namespace Sicotyc.Controllers
             }
         }
 
-        [HttpPost("token-reset-password/{id:guid}")]
+        [HttpPost("token-reset-password")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> TokenResetPassword(Guid id)
+        public async Task<IActionResult> TokenResetPassword([FromBody] TokenResetPassword tokenResetPassword)
         { 
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await _userManager.FindByIdAsync(tokenResetPassword.Id);
             if (user == null)
             {
                 return BadRequest("Usuario no encontrado para generacion de token");
@@ -92,9 +102,12 @@ namespace Sicotyc.Controllers
 
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
             // Almacena el token, el usuario y cualquier otra información necesaria en tu sistema
-            // Por ejemplo, podrías almacenar esto en la base de datos o en una caché temporal
+            // Por ejemplo, podrías almacenar esto en la base de datos o en una caché temporal            
 
-            return Ok(new { Token = resetToken });
+            return Ok(new 
+            { 
+                Token = resetToken
+            });
 
         }
 
@@ -102,6 +115,7 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPassword model)
         {
+            ResultProcess resultProcess = new ResultProcess();
             var user = await _userManager.FindByIdAsync(model.UserId);
 
             if (user == null)
@@ -110,17 +124,24 @@ namespace Sicotyc.Controllers
             }
 
             var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
-
+            
             if (result.Succeeded)
-            {
+            {                
+                resultProcess.Success = true;
+                resultProcess.Message = $"La contraseña del usuario fue reseteada correctamente";
+                resultProcess.Status = HttpStatusCode.OK;
+
                 // Puedes agregar aquí cualquier lógica adicional después de restablecer la contraseña
                 _logger.LogInfo($"La contraseña del usuario con id:{model.UserId} fue reseteada correctamente");
-                return Ok("Contraseña restablecida exitosamente.");
+                return Ok(resultProcess);
             }
             else
             {
-                _logger.LogError($"Ocurrio un error al intentar resetear la contraseña para el usuario con el id: {model.UserId}");
-                return BadRequest(result.Errors);
+                resultProcess.Success = false;
+                resultProcess.Message = $"Ocurrio un error al intentar resetear la contraseña para el usuario";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                _logger.LogError($"Ocurrio un error al intentar resetear la contraseña para el usuario con el id: {model.UserId}, aca el detalle: { result.Errors }");
+                return BadRequest(resultProcess);
             }
         }
 
@@ -202,7 +223,8 @@ namespace Sicotyc.Controllers
 
                     return Ok(new { Token = renewToken.Result.Token,
                                     User = userDto,
-                                    Roles = renewToken.Result.Roles
+                                    Roles = renewToken.Result.Roles,
+                                    Menu = await GetMenuItems(uid)
                     });
                 }
                 return BadRequest("Token no valido");
@@ -451,6 +473,49 @@ namespace Sicotyc.Controllers
             }
         }
 
+        // Read
+        [HttpGet("user/email/{email}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetUserByEmail(string email) {
+            try
+            {
+                var userResult = await _userManager.FindByEmailAsync(email);
+                if (userResult == null)
+                {
+                    _logger.LogError($"Usuario con email: {email} no existe");
+                    return NotFound($"Usuario con email: {email} no existe");
+                }
+                else
+                {
+                    var userDto = _mapper.Map<UserDto>(userResult);
+                    // Roles
+                    userDto.Roles = _userManager.GetRolesAsync(new User
+                    {
+                        Id = userDto.Id,
+                        FirstName = userDto.FirstName,
+                        LastName = userDto.LastName,
+                        Email = userDto.Email,
+                        UserName = userDto.UserName
+                    }).Result.ToList();
+
+                    // Ruc
+                    Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(userDto.Id, false);
+                    userDto.Ruc = company.Ruc;
+
+                    // UserDetail
+                    UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(userDto.Id, false);
+                    userDto.UserDetail = userDetail;
+
+                    return Ok(new { data = userDto });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de realizar la busqueda de usuario por email, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de realizar la busqueda de usuario por email");
+            }
+        }
+
         // Update
         [HttpPut("user/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
@@ -685,6 +750,26 @@ namespace Sicotyc.Controllers
         }
         #endregion
 
+        #region Menu options
+        [HttpGet("menu-options/user/{id}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetMenuByUserId(string id)
+        {
+            try
+            {               
+                return Ok(new {
+                    userId = id,
+                    menu = await GetMenuItems(id)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de obtener la lista de opciones de menu para el usuario {id}, aca el detalle: {ex.Message}");
+                return BadRequest("Hubo un error al tratar de obtener la lista de opciones de menu para el usuario");
+            }
+        }
+        #endregion
+
         #region Private methods
         private async Task<List<ClaimMetadata>> GetClaimsAsync(string token) { 
         
@@ -722,6 +807,84 @@ namespace Sicotyc.Controllers
             }
 
             return claims;
+        }
+
+        private async Task<List<MenuItem>> GetMenuItems(string id) {
+            List<MenuItem> menu = new List<MenuItem>();           
+
+            try
+            {
+                // 1.- Validamos si el usuario existe
+                var userResult = await _userManager.FindByIdAsync(id.ToString());
+                if (userResult == null)
+                {
+                    _logger.LogError($"Usuario con id: {id} no existe");                    
+                }
+
+                // 2.- Obtenemos los roles del usuario
+                var rolesUser = _userManager.GetRolesAsync(userResult).Result.ToList();
+                if (rolesUser == null)
+                {
+                    _logger.LogError($"Usuario con id: {id} no tiene roles");                    
+                }
+
+                // 3.- Aca traemos las opciones necesarias buscando en tablas SQL (TODO)
+                var itemsMenu = await _repository.RepositoryStoreProcedure.GetMenuOptionsByRoleAsync("Administrator");
+
+                if (!itemsMenu.Any(o => o.IsEnabled.Equals(true)))
+                {
+                    #region Opcion de menu por defecto
+                    MenuItem menuItem = new MenuItem();
+                    menuItem.Title = "Dashboard";
+                    menuItem.Icon = "mdi mdi-gauge";
+
+                    List<SubMenuItem> subMenuItems = new List<SubMenuItem>();
+                    subMenuItems.Add(new SubMenuItem { Title = "Main", Url = "/" });
+                    subMenuItems.Add(new SubMenuItem { Title = "ProgressBar", Url = "/dashboard/progress" });
+                    subMenuItems.Add(new SubMenuItem { Title = "Graficas", Url = "/dashboard/grafica1" });
+                    subMenuItems.Add(new SubMenuItem { Title = "Promesas", Url = "/dashboard/promesas" });
+                    subMenuItems.Add(new SubMenuItem { Title = "Juegos Azar", Url = "/dashboard/juegos-azar" });
+                    subMenuItems.Add(new SubMenuItem { Title = "rxJS", Url = "/dashboard/rxjs" });
+                    menuItem.submenu = subMenuItems;
+
+                    menu.Add(menuItem);
+
+                    #endregion
+                }
+                else
+                {
+                    List<OptionByRole> parentOptions = itemsMenu.FindAll(o => o.IsEnabled && o.OptionLevel == 1)
+                                                                .OrderBy(o => o.OptionOrder).ToList();
+                    parentOptions.ForEach(o =>
+                    {
+                        if (itemsMenu.Any(c => c.OptionParentId == o.OptionId && c.IsEnabled && c.OptionLevel == 2)) { 
+                            // Tiene hijos
+                            // Insertamos los Parents
+                            MenuItem menuItem = new MenuItem();
+                            menuItem.Title = o.Title;
+                            menuItem.Icon = o.Icon;
+
+                            List<SubMenuItem> subMenuItems = new List<SubMenuItem>();
+                            List<OptionByRole> chilOptions = itemsMenu.FindAll(c => c.OptionParentId == o.OptionId && c.IsEnabled && c.OptionLevel == 2)
+                                                                        .OrderBy(o => o.OptionOrder).ToList();
+                            chilOptions.ForEach(c =>
+                            {
+                                subMenuItems.Add(new SubMenuItem { Title = c.Title, Url = c.Url, });
+                            });
+                            menuItem.submenu = subMenuItems;
+                            menu.Add(menuItem);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex )
+            {
+                _logger.LogError($"Hubo un error al tratar de obtener la lista de opciones de menu para el usuario {id}, aca el detalle: {ex.Message}");
+                throw;
+            }
+
+            // 4.- Retornamos el menu en el formato que necesita la aplicacion front-end
+            return menu;
         }
         #endregion
     }

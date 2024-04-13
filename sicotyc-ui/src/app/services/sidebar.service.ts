@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import { MenuItem } from '../interfaces/menu-item.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SidebarService {
 
-  menu: any[] = [
+  menu: MenuItem[] = [
     {
       title: 'Dashboard',
       icon: 'mdi mdi-gauge',

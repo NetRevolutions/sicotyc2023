@@ -15,6 +15,7 @@ namespace Repository
         private readonly Lazy<ICompanyRepository> _companyRepository;
         private readonly Lazy<IUserCompanyRepository> _userCompanyRepository;
         private readonly Lazy<IUserDetailRepository> _userDetailRepository;
+        private readonly Lazy<IRepositoryStoreProcedure> _repositoryStoreProcedure;
 
         public RepositoryManager(UserManager<User> userManager, IConfiguration configuration, RepositoryContext repositoryContext)
         {
@@ -26,6 +27,7 @@ namespace Repository
             _companyRepository = new Lazy<ICompanyRepository>(() => new CompanyRepository(repositoryContext));
             _userCompanyRepository = new Lazy<IUserCompanyRepository>(() => new UserCompanyRepository(repositoryContext));
             _userDetailRepository = new Lazy<IUserDetailRepository>(() => new UserDetailRepository(repositoryContext));
+            _repositoryStoreProcedure = new Lazy<IRepositoryStoreProcedure>(() => new RepositoryStoreProcedure(repositoryContext));
         }
         public IAuthenticationManager AuthenticationManager => _authenticationManager.Value;
         public ILookupCodeGroupRepository LookupCodeGroup => _lookupCodeGroupRepository.Value;
@@ -33,6 +35,7 @@ namespace Repository
         public ICompanyRepository Company => _companyRepository.Value;
         public IUserCompanyRepository UserCompany => _userCompanyRepository.Value;
         public IUserDetailRepository UserDetail => _userDetailRepository.Value;
+        public IRepositoryStoreProcedure RepositoryStoreProcedure => _repositoryStoreProcedure.Value;
 
         public Task SaveAsync() => _repositoryContext.SaveChangesAsync();
     }

@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { fnpasswordsIguales } from 'src/app/directives/fnpasswordsIguales.directive';
-import { IChangePassword } from 'src/app/interfaces/changePassword.interface';
+import { IChangePassword } from 'src/app/interfaces/change-password.interface';
 
 // Services
 import { UserService } from 'src/app/services/user.service';

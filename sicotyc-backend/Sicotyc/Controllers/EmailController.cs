@@ -4,6 +4,7 @@ using Entities.Models;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Sicotyc.ActionFilters;
+using System.Net;
 
 namespace Sicotyc.Controllers
 {
@@ -28,12 +29,23 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> SendEmail([FromBody] EmailMetadata emailMetadata)
         {
+            ResultProcess resultProcess = new ResultProcess();
             var result = await _emailService.SendMailAsync(emailMetadata);
 
             if (result)
-                return Ok("Correo enviado");
+            {
+                resultProcess.Success = true;
+                resultProcess.Message = "Correo enviado";
+                resultProcess.Status = HttpStatusCode.OK;
+                return Ok(resultProcess);
+            }
             else
-                return BadRequest("Se produjo un error al enviar el correo.");
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Se produjo un error al enviar el correo.";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                return BadRequest(resultProcess);
+            }                
         }
 
     }
