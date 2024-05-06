@@ -87,7 +87,7 @@ export class UserComponent implements OnInit{
 
       const { email, userName, firstName, lastName, ruc, userDetail } = user.data; // con esto destructuro y paso los valores que necesito
       this.userSelected = user.data;
-      console.log('userSelected', this.userSelected);
+      // console.log('userSelected', this.userSelected);
       this.userForm.setValue({email, userName, firstName, lastName, ruc });
       if (userDetail != null)
       {
@@ -118,7 +118,7 @@ export class UserComponent implements OnInit{
       roles: this.userSelected?.roles
     };
     
-    console.log('userData', userData);
+    //console.log('userData', userData);
     this.userService.updateUser(userData)
     .subscribe({
       next: (resp) => { 

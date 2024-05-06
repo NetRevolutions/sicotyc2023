@@ -55,7 +55,7 @@
                                 <th>Nombre</th>
                                 <th>Apellidos</th>
                                 <th class="w100">Ruc</th>                                
-                                <th class="w200">Roles</th>
+                                <th class="w250">Roles</th>
                                 <th class="text-nowrap w100">Acciones</th>
                             </tr>
                         </thead>
@@ -74,10 +74,8 @@
                                 <td>{{user.lastName}}</td>
                                 <td>{{user.ruc}}</td>
                                 <td>
-                                    <select multiple class="form-control" [(ngModel)]="user.roles" (ngModelChange)="onSelectedValues(user)" >
-                                        <option value="Administrator">Administrator</option>
-                                        <option value="Manager">Manager</option>
-                                        <option value="Member">Member</option>
+                                    <select class="form-control" [(ngModel)]="user.roles" (ngModelChange)="onSelectedValues(user)" [disabled]="userService.uid==user.id?true:false" >
+                                        <option *ngFor="let rol of roles" value="{{rol.item1}}">{{rol.item2}}</option>                                        
                                     </select>
                                 </td>                                
                                 <td class="text-nowrap text-center">

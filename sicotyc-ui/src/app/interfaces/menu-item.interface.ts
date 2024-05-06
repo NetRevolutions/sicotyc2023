@@ -1,7 +1,7 @@
-import { SubMenuItem } from "./sub-menu-item.interface";
+import { ISubMenuItem } from "./sub-menu-item.interface";
 
-export interface MenuItem {
+export interface IMenuItem {
     title?: string,
     icon?: string,
-    submenu?: SubMenuItem[]
+    submenu?: ISubMenuItem[]
 }

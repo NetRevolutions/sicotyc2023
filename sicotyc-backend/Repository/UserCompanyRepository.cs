@@ -64,6 +64,11 @@ namespace Repository
             }
         }
 
-        
+        public async Task<List<string>> GetUserIdsByCompanyId(Guid companyId, bool trackChanges)
+        {
+           return await FindByCondition(o => o.CompanyId.Equals(companyId), trackChanges)
+                .Select(s => s.Id)
+                .ToListAsync();
+        }
     }
 }

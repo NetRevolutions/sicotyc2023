@@ -41,7 +41,7 @@ export class LoginComponent implements OnInit{
         this.userService.getClaims()
         .subscribe((result: any) => {           
           // Seteamos los valores en el local storage
-          console.log('result', result);
+          //console.log('result', result);
           if (result.claims != null) {
             localStorage.setItem('claims', JSON.stringify(result.claims));
           };          
@@ -50,7 +50,7 @@ export class LoginComponent implements OnInit{
         this.router.navigateByUrl('/');
       },
       error: (err) => {
-        Swal.fire('Error', err.error, 'error');
+        Swal.fire('Error', err.message, 'error');
       },
       complete: () => console.info('login de usuario realizado')
     })

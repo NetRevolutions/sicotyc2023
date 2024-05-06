@@ -16,7 +16,7 @@ namespace Repository
 {
     public class AuthenticationManager : RepositoryBase<User>, IAuthenticationManager
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<User> _userManager;        
         private readonly IConfiguration _configuration;
         private User? _user;
 
@@ -26,13 +26,8 @@ namespace Repository
             _userManager = userManager;
             _configuration = configuration;
         }
-        public async Task<bool> ValidateUser(UserForAuthenticationDto userForAuth)
-        {
-            _user = await _userManager.FindByNameAsync(userForAuth.UserName);
 
-            return _user != null && await _userManager.CheckPasswordAsync(_user, userForAuth.Password);
-        }
-
+        #region Token methods
         public async Task<string> CreateTokenAsync()
         {
             var signingCredentials = GetSigningCredentials();
@@ -41,7 +36,6 @@ namespace Repository
 
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
         }
-
         public async Task<RenewToken> RenewTokenAsync(string userId)
         {
             _user = await _userManager.FindByIdAsync(userId);                       
@@ -62,6 +56,84 @@ namespace Repository
                 Roles = roles
             };
 
+        }        
+
+        public async Task<ResultProcess> ValidateToken(string token)
+        {
+            ResultProcess resultProcess = new ResultProcess();
+            resultProcess.Success = true;
+            resultProcess.Status = HttpStatusCode.OK;
+
+            if (token == null)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Token no valido";
+                resultProcess.Status = HttpStatusCode.Unauthorized;
+                return resultProcess;
+            }
+
+            List<ClaimMetadata> claims = await GetClaimsAsync(token);
+            if (claims == null || claims.Count == 0)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Token no valido";
+                resultProcess.Status = HttpStatusCode.Unauthorized;
+                return resultProcess;
+            }
+
+
+            var tokenValidationResult = await getTokenValidationResult(token);
+
+            var expirationDate = tokenValidationResult.SecurityToken.ValidTo.ToUniversalTime();
+            if (expirationDate < DateTime.UtcNow)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Token expirado";
+                resultProcess.Status = HttpStatusCode.Unauthorized;
+                return resultProcess;
+            }
+
+            return resultProcess;
+        }
+
+        #endregion
+
+        #region Claims methods
+        public async Task<List<ClaimMetadata>> GetClaimsAsync(string token)
+        {
+            List<ClaimMetadata> claimList = new List<ClaimMetadata>();
+            try
+            {
+                // Decodificar el token
+                var claimsPrincipal = await getTokenValidationResult(token);
+
+                if (claimsPrincipal.IsValid)
+                {
+                    var claims = claimsPrincipal.Claims;
+                    foreach (var claim in claims)
+                    {
+                        claimList.Add(new ClaimMetadata { Type = claim.Key, Value = claim.Value.ToString() });
+                    }
+                }
+
+                return claimList;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        #endregion
+
+        #region User Methods
+
+        public async Task<bool> ValidateUser(UserForAuthenticationDto userForAuth)
+        {
+            CancellationToken cancellationToken = default;
+            _user = await _userManager.FindByNameAsync(userForAuth.UserName);
+
+            return _user != null && await _userManager.CheckPasswordAsync(_user, userForAuth.Password);
         }
 
         public async Task<List<User>> GetUsersByIdCollectionAsync(IEnumerable<string> ids, bool trackChanges)
@@ -110,69 +182,20 @@ namespace Repository
                 
         }        
 
-        public async Task<List<ClaimMetadata>> GetClaimsAsync(string token)
-        {            
-            List<ClaimMetadata> claimList = new List<ClaimMetadata>();
-            try
-            {
-                // Decodificar el token
-                var claimsPrincipal = await getTokenValidationResult(token); 
+        
 
-                if (claimsPrincipal.IsValid)
-                {
-                    var claims = claimsPrincipal.Claims;
-                    foreach ( var claim in claims)
-                    {                        
-                        claimList.Add(new ClaimMetadata { Type = claim.Key, Value = claim.Value.ToString() });
-                    }                    
-                }
-
-                return claimList;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }        
-
-        public async Task<ResultProcess> ValidateToken(string token)
+        public async Task<User> FindUserByEmailAsync(string email, bool trackChanges)
         {
-            ResultProcess resultProcess = new ResultProcess();
-            resultProcess.Success = true;
-            resultProcess.Status = HttpStatusCode.OK;
+            return await FindByCondition(u => u.Email.ToLower().Trim() == email.ToLower().Trim(), trackChanges).FirstOrDefaultAsync();
+        }
 
-            if (token == null)
-            {
-                resultProcess.Success = false;
-                resultProcess.Message = "Token no valido";
-                resultProcess.Status = HttpStatusCode.Unauthorized;
-                return resultProcess;
-            }
+        public async Task<User> FindUserByUserNameAsync(string userName, bool trackChanges)
+        {
+            return await FindByCondition(u => u.UserName.ToLower().Trim() == userName.ToLower().Trim(), trackChanges).FirstOrDefaultAsync();
+        }
 
-            List<ClaimMetadata> claims = await GetClaimsAsync(token);
-            if (claims == null || claims.Count == 0)
-            {
-                resultProcess.Success = false;
-                resultProcess.Message = "Token no valido";
-                resultProcess.Status = HttpStatusCode.Unauthorized;
-                return resultProcess;
-            }            
-
-
-            var tokenValidationResult = await getTokenValidationResult(token);
-
-            var expirationDate = tokenValidationResult.SecurityToken.ValidTo.ToUniversalTime();
-            if (expirationDate < DateTime.UtcNow)
-            {
-                resultProcess.Success = false;
-                resultProcess.Message = "Token expirado";
-                resultProcess.Status = HttpStatusCode.Unauthorized;
-                return resultProcess;
-            }
-
-            return resultProcess;
-        }        
-
+        #endregion
+                
         #region Private Methods
 
         private SigningCredentials GetSigningCredentials()

@@ -6,6 +6,7 @@ export interface RegisterForm {
     email: string;
     password: string;
     password2: string;
+    roles: string,
     terms: string;
 
 }

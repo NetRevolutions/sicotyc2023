@@ -72,7 +72,7 @@ namespace Sicotyc.Extensions
 
         public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
             services.AddDbContext<RepositoryContext>(opts =>
-                opts.UseSqlServer(configuration.GetConnectionString("sqlConnection"))/*, ServiceLifetime.Scoped*/);
+                opts.UseSqlServer(configuration.GetConnectionString("sqlConnection")));
 
         public static void ConfigureRateLimitingOptions(this IServiceCollection services)
         {
@@ -98,19 +98,7 @@ namespace Sicotyc.Extensions
 
         public static void ConfigureIdentity(this IServiceCollection services)
         {
-            //services.AddIdentity<User, IdentityRole>(o => { 
-            //    o.Password.RequireDigit = true;
-            //    o.Password.RequireLowercase = false;
-            //    o.Password.RequireUppercase = false;
-            //    o.Password.RequireNonAlphanumeric = false;
-            //    o.Password.RequiredLength = 10;
-            //    o.User.RequireUniqueEmail = true;
-            //})
-            //.AddEntityFrameworkStores<RepositoryContext>()
-            //.AddDefaultTokenProviders();
-
-
-            var builder = services.AddIdentityCore<User>(o =>
+            var builder = services.AddIdentity<User, IdentityRole>(o =>
             {
                 o.Password.RequireDigit = true;
                 o.Password.RequireLowercase = false;
@@ -119,6 +107,9 @@ namespace Sicotyc.Extensions
                 o.Password.RequiredLength = 10;
                 o.User.RequireUniqueEmail = true;
             });
+
+            //services.AddScoped<IUserStore<User>, UserStore<User>>();
+            //services.AddScoped<IRoleStore<IdentityRole>, RoleStore<IdentityRole>>();
 
             builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
             builder.AddEntityFrameworkStores<RepositoryContext>().AddDefaultTokenProviders();

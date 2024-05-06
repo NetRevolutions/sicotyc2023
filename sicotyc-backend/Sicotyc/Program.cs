@@ -57,7 +57,7 @@ var logger = app.Services.GetRequiredService<ILoggerManager>();
 app.ConfigureExceptionHandler(logger);
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment()) // OJO: Cuando deployo lo cambio a modo IsProduction() sino lo dejo en modo IsDevelopment()
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -65,12 +65,14 @@ if (app.Environment.IsDevelopment())
     //app.UseDeveloperExceptionPage(); // Mostrado solo en modo DEV
     // Lo comentamos porque vamos a manejarlo con nuestro middleware de errores personalizado.
 }
-else if (app.Environment.IsProduction()) { 
-    app.UseHsts(); // Agrega un Strict-Transport-Security header
-}
+//else if (app.Environment.IsProduction()) { 
+//    app.UseHsts(); // Agrega un Strict-Transport-Security header
+//}
 else
 {
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    //app.UseHsts();
 }
 
 app.UseHttpsRedirection();
@@ -123,5 +125,7 @@ app.Run(async context => {
 */
 
 app.MapControllers();
+
+app.MapFallbackToFile("/index.html");
 
 app.Run();

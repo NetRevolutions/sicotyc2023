@@ -1,0 +1,90 @@
+<div class="row animated fadeIn fast">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-8">
+                        <div class="row">
+                            <label class="col-sm-2 control-label">Roles</label>
+                            <div class="col-sm-4">
+                                <div class="input-group" id="menuOptions">
+                                    <select class="form-control" (change)="onChangeRole($event)" >
+                                        <option value="">Seleccione</option>
+                                        <option *ngFor="let item of roles" value="{{item.item1}}">{{item.item2}}</option>                                
+                                    </select>
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                    <div class="col" [hidden]="!(menuOptions.length > 0)">
+                        <div class="text-right">
+                            <button type="submit"                                    
+                                    class="btn btn-success waves-effect waves-light" (click)="saveOptionsByRole()">
+                                <i class="fa fa-save"></i>
+                                Guardar
+                            </button>
+                        </div>
+                    </div>                    
+                </div>                
+            </div>
+        </div>
+    </div>    
+</div>
+<div class="row animated fadeIn fast"
+    *ngIf="loading">
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4 class="alert-heading">Cargando</h4>
+            <i class="fa fa-spin fa-refresh fa-2x"></i>
+            <p class="mb-0">Por favor espere</p>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div *ngIf="menuOptions.length == 0" class="row">
+                    <div class="col-12 text-center">
+                        Sin Resultados
+                    </div>
+                </div>
+                <div *ngIf="menuOptions.length > 0" class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Opcion/Sub-Opcion</th>
+                                <th>Url</th>
+                                <th>Nivel</th>                                
+                                <th>Orden</th>
+                                <th>Habilitado?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let mo of menuOptions; let i=index">                                                               
+                                <td *ngIf="mo.optionLevel == 1"><b>{{ mo.title }}</b></td>
+                                <td *ngIf="mo.optionLevel != 1">{{ mo.title }}</td>
+                                <td>{{ mo.url }}</td>
+                                <td>{{ mo.optionLevel }}</td>                                
+                                <td>{{ mo.optionOrder }}</td>
+                                <td>  
+                                    <div class="checkbox checkbox-info">
+                                        <input type="checkbox" 
+                                                [id]="'inputSchedule' + i" 
+                                                name="inputCheckboxesSchedule" 
+                                                [(ngModel)]="mo.isEnabled"
+                                                [disabled]="mo.optionLevel == 1 ? true: false"
+                                                >
+                                        <label [for]="'inputSchedule' + i" class=""> 
+                                            <span *ngIf="mo.optionLevel == 1">No Editable</span>                                             
+                                        </label>
+                                    </div>                                  
+                                </td>
+                            </tr>                            
+                        </tbody>
+                    </table>
+                </div>    
+            </div>
+        </div>
+    </div>
+</div>

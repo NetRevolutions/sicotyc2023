@@ -50,13 +50,34 @@ export class UserService {
     }
   }
 
-  createUser( formData: RegisterForm) {    
-    return this.http.post(`${base_url}/authentication`, formData)
+  createUser( formData: RegisterForm) {  
+    let data = {
+      ...formData,
+      roles: [formData.roles]
+    };
+    
+    const url = `${base_url}/authentication`;
+    return this.http.post(url, data)
     .pipe(
       catchError(error => {
         return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
       })   
     );    
+  };
+
+  updateUser( userData: User) {
+    let data = {
+      ...userData,
+      roles : userData.roles
+    };
+
+    const url = `${base_url}/authentication/user/${this.uid}`;
+    return this.http.put(url, data, this.headers)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })   
+    );
   };
 
   loginUser( formData: LoginForm) {
@@ -65,6 +86,7 @@ export class UserService {
       tap((resp: any) => {
         localStorage.setItem('token', resp.token);
         localStorage.setItem('menu', JSON.stringify(resp.menu));
+        localStorage.setItem('roles', JSON.stringify(resp.roles));
       }),
       catchError(error => {
         return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
@@ -76,6 +98,7 @@ export class UserService {
     localStorage.removeItem('token');
     localStorage.removeItem('claims');
     localStorage.removeItem('menu');
+    localStorage.removeItem('roles');
     //localStorage.removeItem('companyId');
     this.router.navigateByUrl('/login');
   }
@@ -104,6 +127,7 @@ export class UserService {
 
         localStorage.setItem('token', resp.token); // Seteamos el token renovado
         localStorage.setItem('menu', JSON.stringify(resp.menu));
+        localStorage.setItem('roles', JSON.stringify(resp.roles));
         return true;
       }),     
       catchError(error => of(false)) // Con el of retorno un Observable de tipo boolean (false)
@@ -150,15 +174,7 @@ export class UserService {
     )
   };
   
-  updateUser( data: User) {
-    const url = `${base_url}/authentication/user/${this.uid}`;
-    return this.http.put(url, data, this.headers)
-    .pipe(
-      catchError(error => {
-        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
-      })   
-    );
-  };
+  
 
   loadUsers( pagination: IPagination) {
     const url = `${base_url}/authentication/users?pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
@@ -242,6 +258,18 @@ export class UserService {
     )
   };
 
+  validateUserActivation(code: string, id: string) {
+    const url = `${base_url}/authentication/activate-user`;   
+    const data = { code: code, id: id };
+    return this.http.post(url, data)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    );
+  }
+
+  //#region Menu - Roles
   getMenuOptions(user: User) {
     const url = `${base_url}/authentication/menu-options/user/${user.id}`;
     return this.http.get(url)
@@ -251,5 +279,45 @@ export class UserService {
       })
     )
   };
-  
+
+  getMenuOptionsByRole(role: string) {
+    const url = `${base_url}/authentication/menu-options/role/${role}`;
+    return this.http.get(url)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    ) 
+  };
+
+  updateMenuoptionsByRole(role: string, menuOptions: string[]) {    
+    const url = `${base_url}/authentication/menu-options/role/${role}`;
+    return this.http.put(url, menuOptions, this.headers)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    )
+  };
+
+  getRolesForRegister() {
+    const url = `${base_url}/authentication/roles-register`;
+    return this.http.get(url)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    )
+  };
+
+  getRolesForManintenance() {
+    const url = `${base_url}/authentication/roles-for-maintenance`;
+    return this.http.get(url, this.headers)
+    .pipe(
+      catchError(error => {
+        return throwError(() => new Error(this.validationErrorsCustomize.messageCatchError(error)));
+      })
+    )
+  };  
+  //#endregion
 }

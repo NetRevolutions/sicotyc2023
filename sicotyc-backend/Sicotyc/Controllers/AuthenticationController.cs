@@ -4,14 +4,16 @@ using Entities.DataTransferObjects;
 using Entities.Enum;
 using Entities.Models;
 using Entities.RequestFeatures;
+using FluentEmail.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Repository;
+using Microsoft.EntityFrameworkCore;
 using Service.Contracts;
 using Sicotyc.ActionFilters;
 using Sicotyc.ModelBinders;
 using System.Linq.Dynamic.Core;
 using System.Net;
+using System.Web;
 
 namespace Sicotyc.Controllers
 {
@@ -22,25 +24,36 @@ namespace Sicotyc.Controllers
         private readonly ILoggerManager _logger;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IAuthenticationManager _authManager;
         private readonly IRepositoryManager _repository;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IUploadFileService _uploadService;
-        //private readonly IRepositoryStoreProcedure _repositoryStoreProcedure;
-        
-        public AuthenticationController(ILoggerManager logger, IMapper mapper,
-            UserManager<User> userManager, IAuthenticationManager authManager, 
-            IRepositoryManager repository, IWebHostEnvironment hostingEnvironment,
-            IUploadFileService uploadFileService)
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
+        ResultProcess resultProcess = new ResultProcess();
+
+        public AuthenticationController(ILoggerManager logger,
+            IMapper mapper,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IAuthenticationManager authManager,
+            IRepositoryManager repository,
+            IWebHostEnvironment hostingEnvironment,
+            IUploadFileService uploadFileService,
+            IEmailService emailService,
+            IConfiguration configuration)
         {
             _logger = logger;
             _mapper = mapper;
             _userManager = userManager;
+            _roleManager = roleManager;
             _authManager = authManager;
             _repository = repository;
             _hostingEnvironment = hostingEnvironment;
             _uploadService = uploadFileService;
-            //_repositoryStoreProcedure = repositoryStoreProcedure;            
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
@@ -50,15 +63,21 @@ namespace Sicotyc.Controllers
             if (!await _authManager.ValidateUser(user))
             {
                 _logger.LogWarn($"{nameof(Authenticate)}: Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
-                return Unauthorized("Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.");
-            }   
-            
-            var userDB = await _userManager.FindByNameAsync(user.UserName);
+                resultProcess.Success = false;
+                resultProcess.Message = $"Autenticacion fallida. Nombre de Usuario o Contraseña incorrecto.";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                return BadRequest(resultProcess);
+            }
 
-            return Ok(new 
-            { 
+            var userDB = await _userManager.FindByNameAsync(user.UserName);
+            var rolesUser = _userManager.GetRolesAsync(userDB).Result.ToList();
+
+
+            return Ok(new
+            {
                 Token = await _authManager.CreateTokenAsync(),
-                Menu = await GetMenuItems(userDB.Id)
+                Menu = await GetMenuItems(userDB.Id),
+                Roles = rolesUser
             });
         }
 
@@ -66,7 +85,7 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePassword model)
-        { 
+        {
             var user = await _userManager.FindByIdAsync(model.Id);
 
             if (user == null)
@@ -93,7 +112,7 @@ namespace Sicotyc.Controllers
         [HttpPost("token-reset-password")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> TokenResetPassword([FromBody] TokenResetPassword tokenResetPassword)
-        { 
+        {
             var user = await _userManager.FindByIdAsync(tokenResetPassword.Id);
             if (user == null)
             {
@@ -104,8 +123,8 @@ namespace Sicotyc.Controllers
             // Almacena el token, el usuario y cualquier otra información necesaria en tu sistema
             // Por ejemplo, podrías almacenar esto en la base de datos o en una caché temporal            
 
-            return Ok(new 
-            { 
+            return Ok(new
+            {
                 Token = resetToken
             });
 
@@ -115,7 +134,7 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPassword model)
         {
-            ResultProcess resultProcess = new ResultProcess();
+
             var user = await _userManager.FindByIdAsync(model.UserId);
 
             if (user == null)
@@ -124,9 +143,9 @@ namespace Sicotyc.Controllers
             }
 
             var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
-            
+
             if (result.Succeeded)
-            {                
+            {
                 resultProcess.Success = true;
                 resultProcess.Message = $"La contraseña del usuario fue reseteada correctamente";
                 resultProcess.Status = HttpStatusCode.OK;
@@ -140,16 +159,17 @@ namespace Sicotyc.Controllers
                 resultProcess.Success = false;
                 resultProcess.Message = $"Ocurrio un error al intentar resetear la contraseña para el usuario";
                 resultProcess.Status = HttpStatusCode.BadRequest;
-                _logger.LogError($"Ocurrio un error al intentar resetear la contraseña para el usuario con el id: {model.UserId}, aca el detalle: { result.Errors }");
+                _logger.LogError($"Ocurrio un error al intentar resetear la contraseña para el usuario con el id: {model.UserId}, aca el detalle: {result.Errors}");
                 return BadRequest(resultProcess);
             }
         }
 
         [HttpGet("claims")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> GetClaims([FromQuery] string token) {
+        public async Task<IActionResult> GetClaims([FromQuery] string token)
+        {
             try
-            {                
+            {
                 List<ClaimMetadata> claims = await GetClaimsAsync(token);
 
                 if (claims.Count() > 0)
@@ -162,24 +182,26 @@ namespace Sicotyc.Controllers
                 _logger.LogError($"Se produjo un error al intentar leer el token {token}");
                 return BadRequest(ex.Message);
             }
-            
+
         }
 
         [HttpGet("validateJWT")]
-        public async Task<IActionResult> ValidateJWT() {
+        public async Task<IActionResult> ValidateJWT()
+        {
             // Acceder al encabezado "x-token" desde HttpContext
             if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
-            {    
-                
+            {
+
                 ResultProcess validToken = await _authManager.ValidateToken(tokenHeaderValue);
 
                 if (validToken.Status == HttpStatusCode.OK)
                 {
                     return Ok("Token valido");
                 }
-                else {
+                else
+                {
                     return Unauthorized(validToken.Message);
-                }                                
+                }
             }
 
             return BadRequest("Token no valido");
@@ -198,12 +220,12 @@ namespace Sicotyc.Controllers
                     return BadRequest("No hay token en la peticion");
                 }
 
-                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);                
+                List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
 
                 if (claims.Count() > 0)
                 {
                     string? uid = claims.Find(x => x.Type == "Id")?.Value;
-                    var renewToken = _authManager.RenewTokenAsync(uid.ToString());                    
+                    var renewToken = _authManager.RenewTokenAsync(uid.ToString());
 
                     var userDto = _mapper.Map<UserDto>(renewToken.Result.User);
                     userDto.Roles = userDto.Roles = _userManager.GetRolesAsync(new User
@@ -221,19 +243,162 @@ namespace Sicotyc.Controllers
                     UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(uid, false);
                     userDto.UserDetail = userDetail;
 
-                    return Ok(new { Token = renewToken.Result.Token,
-                                    User = userDto,
-                                    Roles = renewToken.Result.Roles,
-                                    Menu = await GetMenuItems(uid)
+                    return Ok(new
+                    {
+                        Token = renewToken.Result.Token,
+                        User = userDto,
+                        Roles = renewToken.Result.Roles,
+                        Menu = await GetMenuItems(uid)
                     });
                 }
                 return BadRequest("Token no valido");
             }
-            else {
+            else
+            {
                 return BadRequest("No hay token en la peticion");
             }
         }
 
+        [HttpGet("roles-register")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetRolesForRegister()
+        {
+            var roles = await GetAllRolesAsync();
+            if (roles.Any())
+            {
+                List<Tuple<string, string>> finalRoles = new List<Tuple<string, string>>();
+
+                var rolesToReturn = roles.Where(r => r.NormalizedName == "FORWARDER" || r.NormalizedName == "AGENCY")
+                        .Select(s => new { s.Name, s.NormalizedName }).ToList();
+
+                Tuple<string, string> tuple;
+                rolesToReturn.ForEach(rol =>
+                {
+                    switch (rol.NormalizedName)
+                    {
+                        case "ADMINISTRATOR":
+                            tuple = Tuple.Create(rol.Name, "ADMINISTRADOR");
+                            finalRoles.Add(tuple);
+                            break;
+                        case "FORWARDER":
+                            tuple = Tuple.Create(rol.Name, "TRANSPORTISTA");
+                            finalRoles.Add(tuple);
+                            break;
+                        case "AGENCY":
+                            tuple = Tuple.Create(rol.Name, "AGENCIA");
+                            finalRoles.Add(tuple);
+                            break;
+                        default:
+                            tuple = Tuple.Create(rol.Name, rol.NormalizedName);
+                            finalRoles.Add(tuple);
+                            break;
+                    }
+                });
+
+                return Ok(new { roles = finalRoles });
+            }
+            else
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "No existen Roles disponibles";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                _logger.LogError($"No existen Roles disponibles");
+                return BadRequest(resultProcess);
+            }
+
+        }
+
+        [HttpGet("roles-for-maintenance")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
+        public async Task<IActionResult> GetRolesForMaintenance()
+        {
+            // Note:
+            // If the user logued is Administrator, return Administrator Role with the another roles.
+            // If the user logued is not Administrator, he can create users with another roles, similar or minus then him
+            var currentUserDto = await GetUserInfoFromToken();
+            var roles = await GetAllRolesAsync();
+            List<Tuple<string, string>> finalRoles = new List<Tuple<string, string>>();
+            if (roles.Any())
+            {
+                var rolesToReturn = currentUserDto.Roles[0] == "Administrator" ?
+                                        roles.Select(s => new { s.Name, s.NormalizedName }).ToList() :
+                                        roles.Where(r => r.NormalizedName != "ADMINISTRATOR")
+                                        .Select(s => new { s.Name, s.NormalizedName }).ToList();
+
+                Tuple<string, string> tuple;
+                rolesToReturn.ForEach(rol =>
+                {
+                    switch (rol.NormalizedName)
+                    {
+                        case "ADMINISTRATOR":
+                            tuple = Tuple.Create(rol.Name, "ADMINISTRADOR");
+                            finalRoles.Add(tuple);
+                            break;
+                        case "FORWARDER":
+                            tuple = Tuple.Create(rol.Name, "TRANSPORTISTA");
+                            finalRoles.Add(tuple);
+                            break;
+                        case "AGENCY":
+                            tuple = Tuple.Create(rol.Name, "AGENCIA");
+                            finalRoles.Add(tuple);
+                            break;
+                        default:
+                            tuple = Tuple.Create(rol.Name, rol.NormalizedName);
+                            finalRoles.Add(tuple);
+                            break;
+                    }
+                });
+                return Ok(new { roles = finalRoles });
+            }
+            else
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "No existen Roles disponibles";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                _logger.LogError($"No existen Roles disponibles");
+                return BadRequest(resultProcess);
+            }
+        }
+
+        [HttpPost("activate-user")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> ActivateUser([FromBody] UserForActivationDto userForActivationDto) 
+        {
+            if (userForActivationDto.Id == null && userForActivationDto.Code == null)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = "Error al momento de leer los parametros de activacion";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                return BadRequest(resultProcess);
+            }
+
+            var user = await _userManager.FindByIdAsync(userForActivationDto.Id);
+            if (user == null)
+            {
+                resultProcess.Success = false;
+                resultProcess.Message = $"No se pudo encontrar el usuario con el id: {userForActivationDto.Id}";
+                resultProcess.Status = HttpStatusCode.NotFound;
+                return NotFound(resultProcess);
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, userForActivationDto.Code);
+            if (result.Succeeded)
+            {
+                resultProcess.Success = true;
+                resultProcess.Message = $"El usuario {user.FirstName} {user.LastName} con el correo {user.Email} fue activado satisfactoriamente!!!";
+                resultProcess.Status = HttpStatusCode.OK;
+                return Ok(resultProcess);
+            }
+            else {
+                resultProcess.Success = false;
+                resultProcess.Message = "Error al momento de la activacion de la cuenta, contacte al administrador";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                return BadRequest(resultProcess);
+            }       
+            
+        }
+        
         #region CRUD Users
 
         // Create
@@ -241,10 +406,87 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         public async Task<IActionResult> RegisterUser([FromBody] UserForRegistrationDto userForRegistration)
         {
+            // Notas:
+            // Modificar la logica para que solo 1 solo usuario pueda registrarse asociado a un ruc, si ya existe una persona (OK)
+            // registrada en el sistema con ese ruc se le preguntara al usuario si desea notificar al dueno de la cuenta si le da acceso al sistema. (Pendiente)
+            // caso que acepte, se le enviara un correo y tendra que ir al mantenimiento de usuarios para crearle la cuenta al usuario en mencion
+            // Solo lo podra hacer desde el mantenimiento de usuarios.
+
+            bool validateUniqueRegister = false;
+
             if (userForRegistration.Ruc == null || userForRegistration.Ruc.Length != 11)
             {
-                return BadRequest("El ruc es un valor de 11 digitos numericos");
+                resultProcess.Success = false;
+                resultProcess.Message = "El ruc es un valor de 11 digitos numericos";
+                resultProcess.Status = HttpStatusCode.BadRequest;
+                return BadRequest(resultProcess);
             }
+
+            var companyDB = await _repository.Company.GetCompanyByRucAsync(userForRegistration.Ruc, trackChanges: false);
+
+            // Validar si usuario ya existe
+            var usrByUserName = await _repository.AuthenticationManager.FindUserByUserNameAsync(userForRegistration.UserName, false);
+            if (usrByUserName != null)
+            {
+                // Validamos si el usuario ya fue validado su email
+                if (await _userManager.IsEmailConfirmedAsync(usrByUserName))
+                {
+                    resultProcess.Success = false;
+                    resultProcess.Message = "El nombre de usuario ya se encuentra registrado";
+                    resultProcess.Status = HttpStatusCode.BadRequest;
+                    return BadRequest(resultProcess);
+                }
+                else {
+                    resultProcess.Success = false;
+                    resultProcess.Message = "El nombre de usuario ya se encuentra registrado y esta pendiente de activacion, revisar su correo";
+                    resultProcess.Status = HttpStatusCode.BadRequest;
+                    return BadRequest(resultProcess);
+                }                
+            }
+
+            // Validar que correo sea unico
+            var usrByEmail = await _repository.AuthenticationManager.FindUserByEmailAsync(userForRegistration.Email, false);
+            if (usrByEmail != null)
+            {
+                // Validamos si el usuario ya fue validado su email
+                if (await _userManager.IsEmailConfirmedAsync(usrByEmail))
+                {
+                    resultProcess.Success = false;
+                    resultProcess.Message = "El correo ya se encuentra registrado";
+                    resultProcess.Status = HttpStatusCode.BadRequest;
+                    return BadRequest(resultProcess);
+                }
+                else {
+                    resultProcess.Success = false;
+                    resultProcess.Message = "El correo ya se encuentra registrado y esta pendiente de activacion, revisar su correo";
+                    resultProcess.Status = HttpStatusCode.BadRequest;
+                    return BadRequest(resultProcess);
+                }                
+            }
+
+            // Validamos si el registro debe de considerar que sea unico
+            if (HttpContext.Request.Headers.TryGetValue("unique-register", out var outValue)) // Se enviara desde Mant de usuarios
+            {
+                validateUniqueRegister = bool.Parse(outValue);
+            }
+
+            if (validateUniqueRegister)
+            {
+                // Validacion para solo registrar 1 cuenta por ruc
+                if (companyDB != null)
+                {
+                    List<string> userIds = await _repository.UserCompany.GetUserIdsByCompanyId(companyDB.CompanyId, trackChanges: false);
+                    if (userIds.Count > 0)
+                    {
+                        resultProcess.Success = false;
+                        resultProcess.Message = "Solo se permite un usuario asociado a un ruc, contacte al administrador para mayor informacion";
+                        resultProcess.Status = HttpStatusCode.BadRequest;
+
+                        return BadRequest(resultProcess);
+                    }
+                }
+            }           
+
             var user = _mapper.Map<User>(userForRegistration);
             if (userForRegistration.Password != null)
             {
@@ -255,26 +497,23 @@ namespace Sicotyc.Controllers
                     {
                         ModelState.TryAddModelError(error.Code, error.Description);
                     }
-
                     return BadRequest(ModelState);
                 }
 
-                if (userForRegistration.Roles == null || userForRegistration.Roles?.Count() == 0) {
-
-                    ICollection<string> roles = new List<string> { "Member" };
+                if (userForRegistration.Roles == null || userForRegistration.Roles?.Count() == 0)
+                {
+                    ICollection<string> roles = new List<string> { "Forwarder" };
                     userForRegistration.Roles = roles;
-                }               
-
+                }
                 await _userManager.AddToRolesAsync(user, userForRegistration.Roles);
 
                 #region Company
                 // Company section
-                var companyDB = await _repository.Company.GetCompanyByRucAsync(userForRegistration.Ruc, trackChanges: false);
                 if (companyDB == null)
                 {
                     // Register Company
-                    Company company = new Company() 
-                    { 
+                    Company company = new Company()
+                    {
                         CompanyId = Guid.NewGuid(),
                         Ruc = userForRegistration.Ruc,
                         CreatedBy = user.Id
@@ -291,10 +530,8 @@ namespace Sicotyc.Controllers
                     };
                     _repository.UserCompany.CreateUserCompany(userCompany);
                     await _repository.SaveAsync();
-
-
                 }
-                else 
+                else
                 {
                     // Registramos en la tabla UserCompany
                     UserCompany userCompany = new UserCompany()
@@ -320,13 +557,36 @@ namespace Sicotyc.Controllers
 
                 #endregion
 
-                return StatusCode(201); // 201 = Created
+                // Generar token para activacion de correo.
+                var code = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
+                EmailMetadata emailMetadata = new EmailMetadata(
+                    new List<EmailItem> { new EmailItem { Email = user.Email } },
+                    new List<EmailItem> { },
+                    new List<EmailItem> { },
+                    $"SICOTYC - Confirma tu cuenta {user.FirstName} {user.LastName}",
+                    $"Por favor confirma tu cuenta haciendo <a href='{_configuration.GetSection("UISettings")["url"]}/confirm-email?id={user.Id}&code={code}'>click aqui</a>; </br>o copiando en un navegador el siguiente enlace: {_configuration.GetSection("UISettings")["url"]}/confirm-email?uid={user.Id}&code={code}",
+                    true);
 
+                if (await _emailService.SendMailAsync(emailMetadata))
+                {
+                    resultProcess.Status = HttpStatusCode.Created;
+                    resultProcess.Message = "Estas a un paso de usar SICOTYC, revisa tu correo de registro para que actives tu cuenta";
+                    resultProcess.Success = true;
+                    return Ok(resultProcess);
+                }
+                else
+                {
+                    resultProcess.Status = HttpStatusCode.BadRequest;
+                    resultProcess.Message = "Hubo un problema al momento de enviar tu correo para la activacion de tu cuenta, contacte al administrador.";
+                    resultProcess.Success = false;
+                    return BadRequest(resultProcess);
+                }
             }
-            else {
+            else
+            {
                 _logger.LogError($"No se puede registrar al usuario porque el password es nulo");
                 return BadRequest(ModelState);
-            }            
+            }
         }
 
         // Read
@@ -335,6 +595,13 @@ namespace Sicotyc.Controllers
         [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> GetUsers([FromQuery] UserParameters userParameters)
         {
+            // Nota:
+            // Se deberia de considerar traer solo los usuarios que pertenecen a la misma empresa
+            // SI el usuario que esta logueado tiene el Rol Administrador, poda ver la lista completa de usuarios.
+            // Obtener el Id del usuario del token.
+
+            var currentUserDto = await GetUserInfoFromToken();
+
             try
             {
                 var usersFromDb = await _repository.AuthenticationManager.GetUsersAsync(userParameters, trackChanges: false);
@@ -379,7 +646,8 @@ namespace Sicotyc.Controllers
         [HttpGet("users/collection({ids})")]
         [ServiceFilter(typeof(ValidationTokenFilter))]
         public async Task<IActionResult> GetUsersByIdCollection(
-            [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids) {
+            [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<string> ids)
+        {
 
             try
             {
@@ -476,7 +744,8 @@ namespace Sicotyc.Controllers
         // Read
         [HttpGet("user/email/{email}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
-        public async Task<IActionResult> GetUserByEmail(string email) {
+        public async Task<IActionResult> GetUserByEmail(string email)
+        {
             try
             {
                 var userResult = await _userManager.FindByEmailAsync(email);
@@ -524,7 +793,7 @@ namespace Sicotyc.Controllers
         {
             try
             {
-                var userDB = _userManager.FindByIdAsync(userDto.Id).Result;
+                var userDB = await _userManager.FindByIdAsync(userDto.Id);
                 if (userDB == null)
                 {
                     _logger.LogError($"Usuario con id: {userDto.Id} no existe");
@@ -725,7 +994,7 @@ namespace Sicotyc.Controllers
         [HttpGet("userDetails/{id:guid}")]
         [ServiceFilter(typeof(ValidationFilterAttribute))]
         [ServiceFilter(typeof(ValidationTokenFilter))]
-        private async Task<IActionResult> GetUserDetails(Guid id) 
+        private async Task<IActionResult> GetUserDetails(Guid id)
         {
             try
             {
@@ -756,8 +1025,9 @@ namespace Sicotyc.Controllers
         public async Task<IActionResult> GetMenuByUserId(string id)
         {
             try
-            {               
-                return Ok(new {
+            {
+                return Ok(new
+                {
                     userId = id,
                     menu = await GetMenuItems(id)
                 });
@@ -768,11 +1038,56 @@ namespace Sicotyc.Controllers
                 return BadRequest("Hubo un error al tratar de obtener la lista de opciones de menu para el usuario");
             }
         }
+
+        [HttpGet("menu-options/role/{role}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        public async Task<IActionResult> GetMenuByRole(string role)
+        {
+            try
+            {
+                return Ok(new
+                {
+                    role = role,
+                    menu = await _repository.RepositoryStoreProcedure.GetMenuOptionsByRoleAsync(role)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de obtener la lista de opciones de menu para el rol {role}, aca el detalle: {ex.Message}");
+                return BadRequest($"Hubo un error al tratar de obtener la lista de opciones de menu para el rol {role}");
+            }
+        }
+
+        [HttpPut("menu-options/role/{role}")]
+        [ServiceFilter(typeof(ValidationFilterAttribute))]
+        [ServiceFilter(typeof(ValidationTokenFilter))]
+        public async Task<IActionResult> UpdateMenuOptionsByRole([FromBody] string[] menuOptionIds, string role)
+        {
+            var menuOptionIdsStr = string.Empty;
+            if (menuOptionIds != null) menuOptionIds.ForEach(x => menuOptionIdsStr += x + ";");
+
+            try
+            {
+                return Ok(new
+                {
+                    role = role,
+                    menuOptions = await _repository.RepositoryStoreProcedure.UpdateOptionRoleAsync(role, menuOptionIdsStr)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Hubo un error al tratar de actualizar / crear la lista de opciones de menu para el rol {role}, aca el detalle: {ex.Message}");
+                return BadRequest($"Hubo un error al tratar de actualizar / crear la lista de opciones de menu para el rol {role}");
+
+            }
+        }
+
         #endregion
 
         #region Private methods
-        private async Task<List<ClaimMetadata>> GetClaimsAsync(string token) { 
-        
+        private async Task<List<ClaimMetadata>> GetClaimsAsync(string token)
+        {
+
             var claims = new List<ClaimMetadata>();
 
             try
@@ -786,11 +1101,12 @@ namespace Sicotyc.Controllers
                     var lookupCodesFromDb = await _repository.LookupCode.GetLookupCodesAsync(lookupCodeGroup.Id, lookupCodeParameters, trackChanges: false);
                     var lookupCodesDto = _mapper.Map<IEnumerable<LookupCodeDto>>(lookupCodesFromDb);
                     var claimsResult = await _authManager.GetClaimsAsync(token);
-                    if (claimsResult.Count() > 0) 
+                    if (claimsResult.Count() > 0)
                     {
                         List<ClaimMetadata> result = new List<ClaimMetadata>();
                         // Evaluamos para ver que Claims enviamos
-                        foreach (var item in claimsResult) {
+                        foreach (var item in claimsResult)
+                        {
                             if (lookupCodesDto.Any(c => c.LookupCodeValue?.Trim().ToLower() == item.Type?.Trim().ToLower()))
                             {
                                 result.Add(item);
@@ -798,7 +1114,7 @@ namespace Sicotyc.Controllers
                         }
                         claims = result;
                     }
-                }                
+                }
             }
             catch (Exception ex)
             {
@@ -809,8 +1125,24 @@ namespace Sicotyc.Controllers
             return claims;
         }
 
-        private async Task<List<MenuItem>> GetMenuItems(string id) {
-            List<MenuItem> menu = new List<MenuItem>();           
+        private async Task<List<IdentityRole>> GetAllRolesAsync()
+        {
+            try
+            {
+                // Get All Roles
+                var roles = await _roleManager.Roles.ToListAsync();
+                return roles;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Hubo un error al tratar de obtener todos los roles");
+                throw;
+            }
+        }
+
+        private async Task<List<MenuItem>> GetMenuItems(string id)
+        {
+            List<MenuItem> menu = new List<MenuItem>();
 
             try
             {
@@ -818,18 +1150,23 @@ namespace Sicotyc.Controllers
                 var userResult = await _userManager.FindByIdAsync(id.ToString());
                 if (userResult == null)
                 {
-                    _logger.LogError($"Usuario con id: {id} no existe");                    
+                    _logger.LogError($"Usuario con id: {id} no existe");
                 }
 
                 // 2.- Obtenemos los roles del usuario
                 var rolesUser = _userManager.GetRolesAsync(userResult).Result.ToList();
-                if (rolesUser == null)
-                {
-                    _logger.LogError($"Usuario con id: {id} no tiene roles");                    
-                }
 
-                // 3.- Aca traemos las opciones necesarias buscando en tablas SQL (TODO)
-                var itemsMenu = await _repository.RepositoryStoreProcedure.GetMenuOptionsByRoleAsync("Administrator");
+                List<OptionByRole> itemsMenu = new List<OptionByRole>();
+
+                if (rolesUser == null || rolesUser.Count == 0)
+                {
+                    _logger.LogError($"Usuario con id: {id} no tiene roles");
+                }
+                else
+                {
+                    // 3.- Aca traemos las opciones necesarias buscando en tablas SQL (TODO)
+                    itemsMenu = await _repository.RepositoryStoreProcedure.GetMenuOptionsByRoleAsync(rolesUser[0]);
+                }
 
                 if (!itemsMenu.Any(o => o.IsEnabled.Equals(true)))
                 {
@@ -857,7 +1194,8 @@ namespace Sicotyc.Controllers
                                                                 .OrderBy(o => o.OptionOrder).ToList();
                     parentOptions.ForEach(o =>
                     {
-                        if (itemsMenu.Any(c => c.OptionParentId == o.OptionId && c.IsEnabled && c.OptionLevel == 2)) { 
+                        if (itemsMenu.Any(c => c.OptionParentId == o.OptionId && c.IsEnabled && c.OptionLevel == 2))
+                        {
                             // Tiene hijos
                             // Insertamos los Parents
                             MenuItem menuItem = new MenuItem();
@@ -877,7 +1215,7 @@ namespace Sicotyc.Controllers
                     });
                 }
             }
-            catch (Exception ex )
+            catch (Exception ex)
             {
                 _logger.LogError($"Hubo un error al tratar de obtener la lista de opciones de menu para el usuario {id}, aca el detalle: {ex.Message}");
                 throw;
@@ -885,6 +1223,47 @@ namespace Sicotyc.Controllers
 
             // 4.- Retornamos el menu en el formato que necesita la aplicacion front-end
             return menu;
+        }
+
+        private async Task<UserDto> GetUserInfoFromToken()
+        {
+            UserDto userDto = new UserDto();
+
+            // Acceder al encabezado "x-token" desde HttpContext
+            if (HttpContext.Request.Headers.TryGetValue("x-token", out var tokenHeaderValue))
+            {
+                string token = tokenHeaderValue.ToString();
+                if (token != null)
+                {
+                    List<ClaimMetadata> claims = await _authManager.GetClaimsAsync(token);
+                    if (claims.Count() > 0)
+                    {
+                        string? uid = claims.Find(x => x.Type == "Id")?.Value;
+                        // var renewToken = _authManager.RenewTokenAsync(uid.ToString());
+                        var userDB = await _userManager.FindByIdAsync(uid.ToString());
+
+                        // var userDto = _mapper.Map<UserDto>(renewToken.Result.User);
+                        //_mapper.Map(renewToken.Result.User, userDto);
+                        _mapper.Map(userDB, userDto);
+                        userDto.Roles = userDto.Roles = _userManager.GetRolesAsync(new User
+                        {
+                            Id = userDto.Id,
+                            FirstName = userDto.FirstName,
+                            LastName = userDto.LastName,
+                            Email = userDto.Email,
+                            UserName = userDto.UserName
+                        }).Result.ToList();
+
+                        Company company = await _repository.UserCompany.GetCompanyByUserIdAsync(uid, false);
+                        userDto.Ruc = company.Ruc;
+
+                        UserDetail userDetail = await _repository.UserDetail.GetUserDetailByUserIdAsync(uid, false);
+                        userDto.UserDetail = userDetail;
+                    }
+                }
+            }
+
+            return userDto;
         }
         #endregion
     }

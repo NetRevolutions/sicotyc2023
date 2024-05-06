@@ -11,6 +11,7 @@ import { LockScreenComponent } from './lock-screen/lock-screen.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { TermsConditionsPopupComponent } from './terms-conditions-popup/terms-conditions-popup.component';
+import { ConfirmEmailComponent } from './confirm-email/confirm-email.component';
 
 
 
@@ -22,6 +23,7 @@ import { TermsConditionsPopupComponent } from './terms-conditions-popup/terms-co
     ResetPasswordComponent,
     ChangePasswordComponent,
     TermsConditionsPopupComponent,
+    ConfirmEmailComponent,
   ],
   exports: [
     LoginComponent,

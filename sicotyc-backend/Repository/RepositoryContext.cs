@@ -55,28 +55,7 @@ namespace Repository
         public DbSet<OptionByRole>? OptionByRoles { get; set;}
 
         #endregion
-
-
-        #region Store Procedures
-        //public async Task<List<OptionByRole>> GetMenuOptionsByRoleAsync(string roleName)
-        //{
-        //    try
-        //    {
-        //        //var connectionState = Database.GetDbConnection().State;
-        //        //if (connectionState == System.Data.ConnectionState.Closed)
-        //        //{ 
-        //        //    await Database.GetDbConnection().OpenAsync();
-        //        //}
-
-        //        return await OptionByRoles.FromSqlRaw("EXEC [SCT].[USP_GET_MENU_OPTIONS_BY_ROLE] @p0", roleName).ToListAsync();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
-        //}        
-
-        #endregion
+        
 
     }
 }

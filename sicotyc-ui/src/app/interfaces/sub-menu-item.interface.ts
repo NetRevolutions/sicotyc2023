@@ -1,4 +1,4 @@
-export interface SubMenuItem {
+export interface ISubMenuItem {
     title?: string,
     url?: string
 }

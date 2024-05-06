@@ -23,13 +23,13 @@
                 <li class="nav-devider"></li>
                 <li class="nav-small-cap">PERSONAL</li>
 
-                <li *ngFor="let item of menuItems"> 
+                <li *ngFor="let item of sideService.menu"> 
                     <a class="has-arrow waves-effect waves-dark" href="#" aria-expanded="false">
                         <i [class]="item.icon"></i>
                         <span class="hide-menu">
                             {{ item.title }}
                             <span class="label label-rouded label-themecolor pull-right">
-                                {{ item.submenu.length }}
+                                {{ item.submenu?.length }}
                             </span>
                         </span>
                     </a>

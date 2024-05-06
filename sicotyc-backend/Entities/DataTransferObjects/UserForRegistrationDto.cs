@@ -25,6 +25,6 @@ namespace Entities.DataTransferObjects
         public IEnumerable<string>? Roles { get; set; }
         [Required(ErrorMessage = "El RUC de la empresa a la que pertenece es requerido")]
         public string? Ruc { get; set; }
-        public UserDetail? UserDetail { get; set; }
+        public UserDetail? UserDetail { get; set; }        
     }
 }

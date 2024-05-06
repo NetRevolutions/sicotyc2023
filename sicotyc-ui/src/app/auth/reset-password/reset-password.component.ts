@@ -12,7 +12,9 @@ import { EmailService } from 'src/app/services/email.service';
 import { IEmailItem } from 'src/app/interfaces/email-item.interface';
 import { IResetPassword } from 'src/app/interfaces/reset-password.interface';
 import { IResultProcess } from 'src/app/interfaces/result-process.interface';
+import { environment } from 'src/environments/environment.development';
 
+const ui_url = environment.ui_url;
 
 @Component({
   selector: 'app-reset-password',
@@ -82,7 +84,7 @@ export class ResetPasswordComponent implements OnInit{
             let emailMetadata: IEmailMetadata = {
               toAddress: [toAddressItem],
               subject: 'SICOTYC - Correo de reseteo de contraseña',
-              body: `Estimado ${ firstName } ${ lastName } para poder resetear su contraseña agradeceremos abrir en un navegador el siguiente enlace: <a href='http://localhost:4200/reset-password?token-reset-pwd=${ tokenFormatted }&id=${id}&firstName=${firstName}&lastName=${lastName}&email=${this.resetPasswordForm.get('email')?.value}' target='_blank'>http://localhost:4200/reset-password?token-reset-pwd=${ tokenFormatted }&id=${id}&firstName=${firstName}&lastName=${lastName}&email=${this.resetPasswordForm.get('email')?.value}</a>`,
+              body: `Estimado ${ firstName } ${ lastName } para poder resetear su contraseña agradeceremos abrir en un navegador el siguiente enlace: <a href='${ui_url}/reset-password?token-reset-pwd=${ tokenFormatted }&id=${id}&firstName=${firstName}&lastName=${lastName}&email=${this.resetPasswordForm.get('email')?.value}' target='_blank'>${ui_url}/reset-password?token-reset-pwd=${ tokenFormatted }&id=${id}&firstName=${firstName}&lastName=${lastName}&email=${this.resetPasswordForm.get('email')?.value}</a>`,
               isHTML: true
             };
 
@@ -136,10 +138,10 @@ export class ResetPasswordComponent implements OnInit{
         }
       }),
       error: (err) => {
-        console.log(err);
+        //console.log(err);
         Swal.fire('Error', err.message, 'error');
       },
-      complete: () => console.info('Reseteo del passord exitoso')
+      complete: () => console.info('Reseteo del password exitoso')
     });
   };
 

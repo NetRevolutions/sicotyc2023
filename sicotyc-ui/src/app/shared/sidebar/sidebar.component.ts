@@ -1,7 +1,12 @@
 import { Component } from '@angular/core';
+
+// Interface
+import { IMenuItem } from 'src/app/interfaces/menu-item.interface';
+
+// Models
 import { User } from 'src/app/models/user.model';
 
-
+// Services
 import { SidebarService } from 'src/app/services/sidebar.service';
 import { UserService } from 'src/app/services/user.service';
 
@@ -13,15 +18,12 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class SidebarComponent {
   public user?: User;
-  menuItems: any[] = [];
 
   constructor( 
-    private sideService: SidebarService,
+    public sideService: SidebarService,
     private userService: UserService
     ) {
-    this.menuItems = sideService.menu;
-    this.user = userService.user;
-    
+    this.user = userService.user;    
   }
 
 }

@@ -12,6 +12,7 @@ import { SearchesService } from 'src/app/services/searches.service';
 import { UserService } from 'src/app/services/user.service';
 import { ModalImageService } from 'src/app/services/modal-image.service';
 import { Subscription, delay } from 'rxjs';
+import { ITuple } from 'src/app/interfaces/tuple.interface';
 
 
 @Component({
@@ -31,12 +32,14 @@ export class UsersComponent implements OnInit, OnDestroy{
   public loading: boolean = true;
   public useSearch: boolean = false;
   public imgSubs: Subscription = new Subscription();
+  public roles: ITuple[] = [];
 
-  constructor( private userService: UserService,
+  constructor( public userService: UserService,
                 private searchesService: SearchesService,
                 private modalImageService: ModalImageService) {}  
   
   ngOnInit(): void {
+    this.loadRoles();
     this.loadUsers();
 
     // Con esto indico que se termino de actualizar la imagen desde el popup
@@ -45,6 +48,7 @@ export class UsersComponent implements OnInit, OnDestroy{
       delay(100) // con esto nos aseguramos que primero se actualice la foto  luego se llama al metodo de cargar usuarios.
     )
     .subscribe( img => {
+      this.loadRoles();
       this.loadUsers()
     }); 
   };
@@ -62,10 +66,16 @@ export class UsersComponent implements OnInit, OnDestroy{
       this.pagination.totalItems = resp.pagination.totalCount;
       this.users = resp.data;
       this.usersTemp = resp.data;
-      this.loading = false;      
-      //console.log(this.users);
+      this.loading = false;
     });
   };  
+
+  loadRoles() {
+    this.userService.getRolesForManintenance()
+    .subscribe((resp: any) => {
+      this.roles = resp.roles;
+    });
+  };
 
   changePage(pageNumber: number) {
     this.pagination.pageNumber = pageNumber;
@@ -131,8 +141,7 @@ export class UsersComponent implements OnInit, OnDestroy{
       if (result.isConfirmed) {
         this.userService.deleteUser(user)
         .subscribe({
-          next: (resp) => {
-            //console.log(resp);
+          next: () => {
             Swal.fire({
               title: "Eliminado!",
               text: "El usuario fue eliminado.",
@@ -153,6 +162,9 @@ export class UsersComponent implements OnInit, OnDestroy{
   };
 
   onSelectedValues(user: User) {
+    // TODO: Validar que no me este actualizando yo mismo
+    console.log('userId_logued',this.userService.uid);
+    console.log('userId_changed', user.id);
     if (user.roles?.indexOf('Administrator') !== -1)
     {
       Swal.fire({
@@ -163,10 +175,11 @@ export class UsersComponent implements OnInit, OnDestroy{
         confirmButtonText: "Si, procede"
       }).then((result) => {
         if (result.isConfirmed) {
+          let rolSelected = user.roles;
+          user.roles = [rolSelected?.toString() ?? ''];
           this.userService.updateUser(user)
           .subscribe({
-            next: (resp) => {
-              //console.log(resp);
+            next: () => {
               Swal.fire({
                 title: "Hecho!",
                 text: "El rol del usuario fue actualizado.",
@@ -188,10 +201,12 @@ export class UsersComponent implements OnInit, OnDestroy{
         }
       });      
     }
-    else {
+    else {      
+      let rolSelected = user.roles;
+      user.roles = [rolSelected?.toString() ?? ''];
       this.userService.updateUser(user)
       .subscribe({
-        next: (resp) => {
+        next: () => {
           this.loadUsers();
         },
         error: (err) => {

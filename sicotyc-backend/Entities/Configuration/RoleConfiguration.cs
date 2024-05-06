@@ -11,18 +11,26 @@ namespace Entities.Configuration
             builder.HasData(
                 new IdentityRole
                 { 
-                    Name = "Manager",
-                    NormalizedName = "MANAGER"
-                }, 
-                new IdentityRole
-                { 
                     Name = "Administrator",
-                    NormalizedName = "ADMINISTRATOR"
+                    NormalizedName = "ADMINISTRATOR" // Todo menos acceso a Mantenimiento de usuarios y lookup
                 },
                 new IdentityRole
                 { 
-                    Name = "Member",
-                    NormalizedName = "MEMBER"
+                    Name = "Forwarder",
+                    NormalizedName = "FORWARDER"    // Transportista
+                },
+                new IdentityRole { 
+                    Name = "Forwarder-Coordinator",
+                    NormalizedName = "FORWARDER-COORDINATOR"
+                },
+                new IdentityRole { 
+                    Name = "Forwarder-Biller",
+                    NormalizedName = "FORWARDER-BILLER"
+                },
+                new IdentityRole
+                { 
+                    Name = "Agency",
+                    NormalizedName = "AGENCY" // Agencia de Aduana
                 }
             );
         }
